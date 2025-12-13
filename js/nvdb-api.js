@@ -10,6 +10,11 @@ const API_VERSION = 'v4';
 const CLIENT_NAME = 'avplan-app';
 const REQUEST_TIMEOUT = 10000; // 10 seconds
 
+// CORS Proxy - required because NVDB API blocks external domains
+// Using corsproxy.io - a reliable public CORS proxy
+const USE_CORS_PROXY = true;
+const CORS_PROXY = 'https://corsproxy.io/?';
+
 /**
  * Make authenticated request to NVDB API
  * @param {string} endpoint - API endpoint path
@@ -26,12 +31,19 @@ async function makeRequest(endpoint, params = {}) {
             }
         });
 
+        // Add CORS proxy if enabled (required for browser-based apps)
+        const finalUrl = USE_CORS_PROXY
+            ? `${CORS_PROXY}${encodeURIComponent(url.toString())}`
+            : url.toString();
+
+        console.log(`Making request to: ${USE_CORS_PROXY ? 'CORS Proxy → ' : ''}${url.toString()}`);
+
         // Setup timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
         // Make request
-        const response = await fetch(url.toString(), {
+        const response = await fetch(finalUrl, {
             headers: {
                 'X-Client': CLIENT_NAME,
                 'Accept': 'application/json'

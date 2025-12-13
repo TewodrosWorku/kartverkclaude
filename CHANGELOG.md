@@ -5,6 +5,20 @@ All notable changes to AV-Plan will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-01-XX
+
+### Fixed
+- **CRITICAL FIX**: Added CORS proxy to bypass NVDB API CORS restrictions
+  - NVDB API blocks all external domains (including GitHub Pages)
+  - Implemented corsproxy.io as proxy to enable browser-based requests
+  - Road selection now works on deployed GitHub Pages site
+  - Can be toggled with `USE_CORS_PROXY` constant
+
+### Notes
+- CORS proxy is necessary for browser-based applications
+- Alternative: Build backend proxy server for production use
+- Current solution works but adds slight latency
+
 ## [1.0.4] - 2025-01-XX
 
 ### Fixed

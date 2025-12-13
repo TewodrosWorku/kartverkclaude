@@ -1,6 +1,6 @@
 {
   "name": "avplan",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Arbeidsvarslingsplan tool for Norwegian roads - Plan and visualize road work with NVDB integration",
   "type": "module",
   "main": "js/app.js",
