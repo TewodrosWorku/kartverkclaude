@@ -1,0 +1,145 @@
+{
+  "30": {
+    "id": "30",
+    "name": "Fartsgrense 30",
+    "category": "speed",
+    "file": "assets/signs/speed/30.svg",
+    "description": "Fartsgrense 30 km/t",
+    "keywords": ["30", "fart", "speed"],
+    "size": "600mm",
+    "temporary": false,
+    "common": true
+  },
+  "40": {
+    "id": "40",
+    "name": "Fartsgrense 40",
+    "category": "speed",
+    "file": "assets/signs/speed/40.svg",
+    "description": "Fartsgrense 40 km/t",
+    "keywords": ["40", "fart", "speed"],
+    "size": "600mm",
+    "temporary": false,
+    "common": true
+  },
+  "50": {
+    "id": "50",
+    "name": "Fartsgrense 50",
+    "category": "speed",
+    "file": "assets/signs/speed/50.svg",
+    "description": "Fartsgrense 50 km/t",
+    "keywords": ["50", "fart", "speed"],
+    "size": "600mm",
+    "temporary": false,
+    "common": true
+  },
+  "60": {
+    "id": "60",
+    "name": "Fartsgrense 60",
+    "category": "speed",
+    "file": "assets/signs/speed/60.svg",
+    "description": "Fartsgrense 60 km/t",
+    "keywords": ["60", "fart", "speed"],
+    "size": "700mm",
+    "temporary": false,
+    "common": true
+  },
+  "70": {
+    "id": "70",
+    "name": "Fartsgrense 70",
+    "category": "speed",
+    "file": "assets/signs/speed/70.svg",
+    "description": "Fartsgrense 70 km/t",
+    "keywords": ["70", "fart", "speed"],
+    "size": "700mm",
+    "temporary": false,
+    "common": false
+  },
+  "80": {
+    "id": "80",
+    "name": "Fartsgrense 80",
+    "category": "speed",
+    "file": "assets/signs/speed/80.svg",
+    "description": "Fartsgrense 80 km/t",
+    "keywords": ["80", "fart", "speed"],
+    "size": "700mm",
+    "temporary": false,
+    "common": true
+  },
+  "90": {
+    "id": "90",
+    "name": "Fartsgrense 90",
+    "category": "speed",
+    "file": "assets/signs/speed/90.svg",
+    "description": "Fartsgrense 90 km/t",
+    "keywords": ["90", "fart", "speed"],
+    "size": "700mm",
+    "temporary": false,
+    "common": false
+  },
+  "110": {
+    "id": "110",
+    "name": "Fartsgrense 110",
+    "category": "speed",
+    "file": "assets/signs/speed/110.svg",
+    "description": "Fartsgrense 110 km/t",
+    "keywords": ["110", "fart", "speed", "motorvei"],
+    "size": "700mm",
+    "temporary": false,
+    "common": false
+  },
+  "142": {
+    "id": "142",
+    "name": "Arbeid på vegen",
+    "category": "warning",
+    "file": "assets/signs/warning/142.svg",
+    "description": "Midlertidig varselskilt for arbeid på vegen",
+    "keywords": ["arbeid", "work", "yellow", "advarsel"],
+    "size": "900mm",
+    "temporary": true,
+    "common": true
+  },
+  "204": {
+    "id": "204",
+    "name": "Farlig vegkant",
+    "category": "warning",
+    "file": "assets/signs/warning/204.svg",
+    "description": "Advarsel om farlig vegkant",
+    "keywords": ["farlig", "vegkant", "advarsel"],
+    "size": "900mm",
+    "temporary": false,
+    "common": true
+  },
+  "110-warning": {
+    "id": "110-warning",
+    "name": "Ukjent fare",
+    "category": "warning",
+    "file": "assets/signs/warning/110.svg",
+    "description": "Advarsel om ukjent fare",
+    "keywords": ["fare", "ukjent", "advarsel"],
+    "size": "900mm",
+    "temporary": false,
+    "common": true
+  },
+  "306": {
+    "id": "306",
+    "name": "Forbikjøring forbudt",
+    "category": "prohibition",
+    "file": "assets/signs/prohibition/306.svg",
+    "description": "Forbikjøring forbudt",
+    "keywords": ["forbikjøring", "forbudt", "overtaking"],
+    "size": "600mm",
+    "temporary": false,
+    "common": true
+  },
+  "308": {
+    "id": "308",
+    "name": "Innkjøring forbudt",
+    "category": "prohibition",
+    "file": "assets/signs/prohibition/308.svg",
+    "description": "Innkjøring forbudt",
+    "keywords": ["innkjøring", "forbudt", "no entry"],
+    "size": "600mm",
+    "temporary": false,
+    "common": true
+  }
+}

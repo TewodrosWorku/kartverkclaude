@@ -1,0 +1,23 @@
+{
+  "name": "avplan",
+  "version": "1.0.4",
+  "description": "Arbeidsvarslingsplan tool for Norwegian roads - Plan and visualize road work with NVDB integration",
+  "type": "module",
+  "main": "js/app.js",
+  "scripts": {
+    "test": "echo \"Open test/validation.html in browser\" && exit 0"
+  },
+  "keywords": [
+    "nvdb",
+    "norwegian-roads",
+    "road-work",
+    "traffic-planning",
+    "arbeidsvarslingsplan"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
