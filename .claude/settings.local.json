@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:nvdbapiles.atlas.vegvesen.no)",
+      "WebFetch(domain:nvdb-docs.atlas.vegvesen.no)"
     ]
   }
 }

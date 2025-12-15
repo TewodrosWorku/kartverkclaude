@@ -85,74 +85,32 @@ async function makeRequest(endpoint, params = {}) {
 export async function findNearestRoad(lat, lon, maxDistance = 50) {
     console.log(`Finding nearest road to [${lat}, ${lon}] within ${maxDistance}m`);
 
-    // NVDB API V4 uses bounding box (kartutsnitt) instead of point + distance
-    // Convert maxDistance to degrees (rough approximation: 1 degree ≈ 111km)
-    const distanceInDegrees = maxDistance / 111000;
-
-    // Create bounding box around the point
-    const minLon = lon - distanceInDegrees;
-    const maxLon = lon + distanceInDegrees;
-    const minLat = lat - distanceInDegrees;
-    const maxLat = lat + distanceInDegrees;
-
-    // Format as bounding box: minLon,minLat,maxLon,maxLat (NOT WKT POLYGON)
-    // NVDB API V4 expects: {Xmin, Ymin, Xmax, Ymax} with srid=4326 for WGS84
-    const kartutsnitt = `${minLon},${minLat},${maxLon},${maxLat}`;
-
-    const data = await makeRequest('/api/v4/veglenkesekvenser/segmentert', {
-        kartutsnitt: kartutsnitt,
-        srid: '4326'  // EPSG:4326 = WGS84
+    // NVDB API V4 Posisjon endpoint - finds nearest road to coordinates
+    // Uses lat/lon for WGS84 coordinates and maks_avstand for max distance in meters
+    const data = await makeRequest('/vegnett/api/v4/posisjon', {
+        lat: lat,
+        lon: lon,
+        maks_avstand: maxDistance
     });
 
-    if (!data || !data.objekter || data.objekter.length === 0) {
+    // Response is an array, not an object with 'objekter'
+    if (!data || !Array.isArray(data) || data.length === 0) {
         console.log('No roads found in area');
         return null;
     }
 
-    // Find the closest road using turf.js if available
-    let closestRoad = data.objekter[0];
+    // Get the first (closest) result
+    const posisjon = data[0];
+    console.log(`Found road at ${posisjon.avstand?.toFixed(1) || 0}m distance`);
 
-    if (typeof turf !== 'undefined' && data.objekter.length > 1) {
-        const clickPoint = turf.point([lon, lat]);
-        let minDistance = Infinity;
-
-        for (const road of data.objekter) {
-            if (road.geometri && road.geometri.wkt) {
-                try {
-                    const roadGeom = parseWKTToGeoJSON(road.geometri.wkt);
-                    if (roadGeom) {
-                        let roadLine;
-                        if (roadGeom.type === 'LineString') {
-                            roadLine = turf.lineString(roadGeom.coordinates);
-                        } else if (roadGeom.type === 'MultiLineString') {
-                            roadLine = turf.lineString(roadGeom.coordinates[0]);
-                        }
-
-                        if (roadLine) {
-                            const nearestPoint = turf.nearestPointOnLine(roadLine, clickPoint);
-                            const distance = turf.distance(clickPoint, nearestPoint, { units: 'meters' });
-
-                            if (distance < minDistance) {
-                                minDistance = distance;
-                                closestRoad = road;
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Error calculating distance for road:', error);
-                }
-            }
-        }
-
-        console.log(`Found closest road at ${minDistance.toFixed(1)}m`);
-    }
-
-    // Extract road data
+    // Extract road data from posisjon response
     return {
-        veglenkesekvensid: closestRoad.veglenkesekvensid,
-        vegsystemreferanse: closestRoad.vegsystemreferanse,
-        geometry: closestRoad.geometri,
-        kommune: closestRoad.kommune
+        veglenkesekvensid: posisjon.veglenkesekvens?.veglenkesekvensid,
+        vegsystemreferanse: posisjon.vegsystemreferanse,
+        geometry: posisjon.geometri,
+        kommune: posisjon.kommune,
+        avstand: posisjon.avstand,
+        relativPosisjon: posisjon.veglenkesekvens?.relativPosisjon
     };
 }
 
@@ -166,7 +124,7 @@ export async function findNearestRoad(lat, lon, maxDistance = 50) {
 export async function getRoadDetails(veglenkesekvensid) {
     console.log(`Fetching road details for ID: ${veglenkesekvensid}`);
 
-    const data = await makeRequest(`/api/v4/veglenkesekvenser/${veglenkesekvensid}`, {
+    const data = await makeRequest(`/vegnett/api/v4/veglenkesekvenser/${veglenkesekvensid}`, {
         inkluder: 'geometri,vegsystemreferanse'
     });
 
