@@ -86,7 +86,7 @@ export async function selectRoadAtPoint(lat, lng) {
     // Update status
     updateStatus('Søker etter vei...');
 
-    // Find nearest road
+    // Find nearest road (this gives us vegsystemreferanse and kommune)
     const roadData = await findNearestRoad(lat, lng, 50);
 
     if (!roadData) {
@@ -95,7 +95,7 @@ export async function selectRoadAtPoint(lat, lng) {
         return;
     }
 
-    // Get full road details
+    // Get full road details (this gives us veglenker with geometry)
     const details = await getRoadDetails(roadData.veglenkesekvensid);
 
     if (!details) {
@@ -103,6 +103,10 @@ export async function selectRoadAtPoint(lat, lng) {
         updateStatus('Feil ved henting av veidata');
         return;
     }
+
+    // Merge the data: preserve vegsystemreferanse and kommune from posisjon call
+    details.vegsystemreferanse = roadData.vegsystemreferanse;
+    details.kommune = roadData.kommune;
 
     // Parse the sequence geometry
     // The API returns veglenker array, each with its own geometri
