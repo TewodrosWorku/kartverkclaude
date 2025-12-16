@@ -4,7 +4,7 @@
  * @module app
  */
 
-import { initializeMap, setupMapClickHandler } from './map-manager.js';
+import { initializeMap, setupMapClickHandler, toggleRoadLayer } from './map-manager.js';
 import { initAddressSearch } from './address-search.js';
 import { initWorkZone, setDistanceMarkersCallback } from './work-zone.js';
 import { updateDistanceMarkers, toggleDistanceMarkers } from './distance-markers.js';
@@ -188,6 +188,17 @@ function setupSettingToggles() {
             console.log(`Show distance markers: ${enabled}`);
 
             toggleDistanceMarkers(enabled);
+        });
+    }
+
+    // Road layer toggle
+    const roadLayerToggle = document.getElementById('roadLayerToggle');
+    if (roadLayerToggle) {
+        roadLayerToggle.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            console.log(`Show road layer: ${enabled}`);
+
+            toggleRoadLayer(enabled);
         });
     }
 }

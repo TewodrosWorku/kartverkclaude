@@ -69,8 +69,14 @@
                 </div>
                 <div class="setting-item">
                     <label>
-                        <input type="checkbox" id="markerToggle" checked aria-label="Vis avstandsmarkører">
-                        Vis avstandsmarkører
+                        <input type="checkbox" id="markerToggle" aria-label="Vis avstandsmarkører" style="display: none;">
+                        <!-- Distance markers disabled - using inline labels instead -->
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="roadLayerToggle" checked aria-label="Vis valgt vei">
+                        Vis valgt vei (blå linje)
                     </label>
                 </div>
             </div>
@@ -146,6 +152,18 @@
             crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/proj4@2.9.2/dist/proj4.js"></script>
+
+    <!-- Verify proj4 loaded -->
+    <script>
+        window.addEventListener('load', function() {
+            if (window.proj4) {
+                console.log('✓ proj4 library loaded successfully');
+            } else {
+                console.error('✗ proj4 library failed to load');
+            }
+        });
+    </script>
 
     <!-- Application Scripts -->
     <script type="module" src="js/app.js"></script>

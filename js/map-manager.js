@@ -4,7 +4,7 @@
  * @module map-manager
  */
 
-import { findNearestRoad, getRoadDetails, formatRoadReference, parseWKTToGeoJSON } from './nvdb-api.js';
+import { findNearestRoad, getRoadDetails, formatRoadReference, getRoadInfo, parseWKTToGeoJSON } from './nvdb-api.js';
 
 // Global map state
 export const mapState = {
@@ -14,6 +14,7 @@ export const mapState = {
     startMarker: null,
     endMarker: null,
     distanceMarkerLayer: null,
+    distanceLabels: [], // Array of distance label markers
     mode: null, // 'setStart', 'setEnd', or null
     clickHandler: null
 };
@@ -103,10 +104,41 @@ export async function selectRoadAtPoint(lat, lng) {
         return;
     }
 
-    // Parse geometry
+    // Parse the sequence geometry
+    // The API returns veglenker array, each with its own geometri
     let geojson = null;
-    if (details.geometri && details.geometri.wkt) {
-        geojson = parseWKTToGeoJSON(details.geometri.wkt);
+
+    if (details.veglenker && Array.isArray(details.veglenker)) {
+        console.log(`Processing ${details.veglenker.length} veglenker`);
+
+        // Sort veglenker by startposisjon to ensure correct order
+        const sortedVeglenker = [...details.veglenker].sort((a, b) => a.startposisjon - b.startposisjon);
+
+        const geometries = [];
+        for (const veglenke of sortedVeglenker) {
+            if (veglenke.geometri && veglenke.geometri.wkt) {
+                const srid = veglenke.geometri.srid || 5973;
+                const geom = parseWKTToGeoJSON(veglenke.geometri.wkt, srid);
+                if (geom) {
+                    geometries.push(geom);
+                }
+            }
+        }
+
+        if (geometries.length === 1) {
+            // Single geometry
+            geojson = geometries[0];
+        } else if (geometries.length > 1) {
+            // Multiple geometries - combine into FeatureCollection
+            geojson = {
+                type: 'FeatureCollection',
+                features: geometries.map(geom => ({
+                    type: 'Feature',
+                    geometry: geom,
+                    properties: {}
+                }))
+            };
+        }
     }
 
     if (!geojson) {
@@ -115,8 +147,10 @@ export async function selectRoadAtPoint(lat, lng) {
         return;
     }
 
-    // Display road
-    displayRoad(details, geojson);
+    console.log(`Displaying single road sequence: ${details.lengde || 0}m`);
+
+    // Display road and show popup at click location
+    displayRoad(details, geojson, lat, lng);
 
     // Store selected road
     mapState.selectedRoad = {
@@ -124,12 +158,54 @@ export async function selectRoadAtPoint(lat, lng) {
         geojson: geojson
     };
 
-    // Update UI
+    // Update UI with detailed road information
     const reference = formatRoadReference(details.vegsystemreferanse);
-    document.getElementById('roadReference').textContent = reference;
+    const roadInfo = getRoadInfo(details.vegsystemreferanse);
 
-    const kommune = details.kommune ? details.kommune[0]?.navn : 'Ukjent';
-    document.getElementById('roadDetails').textContent = `Kommune: ${kommune}`;
+    console.log('Updating sidebar with road reference:', reference);
+    console.log('Road info:', roadInfo);
+
+    // Display main reference (kortform)
+    const roadRefElement = document.getElementById('roadReference');
+    if (roadRefElement) {
+        roadRefElement.textContent = reference;
+        console.log('✓ Sidebar roadReference updated');
+    } else {
+        console.error('✗ roadReference element not found');
+    }
+
+    // Display detailed information including sequence length
+    let detailsHtml = '';
+    if (roadInfo) {
+        detailsHtml += `<strong>Kategori:</strong> ${roadInfo.kategoriNavn}<br>`;
+        if (details.kommune) {
+            detailsHtml += `<strong>Kommune:</strong> ${details.kommune}<br>`;
+        }
+        if (details.lengde) {
+            detailsHtml += `<strong>Lengde:</strong> ${Math.round(details.lengde)}m<br>`;
+        }
+        detailsHtml += `<strong>ID:</strong> ${details.veglenkesekvensid}<br>`;
+        if (roadInfo.trafikantgruppe) {
+            const trafikantMap = {
+                'K': 'Kjørende',
+                'G': 'Gående og syklende'
+            };
+            detailsHtml += `<strong>Trafikantgruppe:</strong> ${trafikantMap[roadInfo.trafikantgruppe] || roadInfo.trafikantgruppe}<br>`;
+        }
+        if (roadInfo.retning) {
+            detailsHtml += `<strong>Retning:</strong> ${roadInfo.retning}`;
+        }
+    } else if (details.kommune) {
+        detailsHtml = `<strong>Kommune:</strong> ${details.kommune}`;
+    }
+
+    const roadDetailsElement = document.getElementById('roadDetails');
+    if (roadDetailsElement) {
+        roadDetailsElement.innerHTML = detailsHtml;
+        console.log('✓ Sidebar roadDetails updated');
+    } else {
+        console.error('✗ roadDetails element not found');
+    }
 
     updateStatus(`Vei valgt: ${reference}`);
 }
@@ -138,11 +214,21 @@ export async function selectRoadAtPoint(lat, lng) {
  * Display road on map
  * @param {Object} roadData - Road data from NVDB
  * @param {Object} geojson - GeoJSON geometry
+ * @param {number} clickLat - Latitude of click location (optional)
+ * @param {number} clickLng - Longitude of click location (optional)
  */
-export function displayRoad(roadData, geojson) {
+export function displayRoad(roadData, geojson, clickLat = null, clickLng = null) {
     // Remove previous road layer
     if (mapState.roadLayer) {
         mapState.map.removeLayer(mapState.roadLayer);
+    }
+
+    // Remove previous distance labels
+    if (mapState.distanceLabels && mapState.distanceLabels.length > 0) {
+        mapState.distanceLabels.forEach(marker => {
+            mapState.map.removeLayer(marker);
+        });
+        mapState.distanceLabels = [];
     }
 
     // Create GeoJSON layer
@@ -158,47 +244,162 @@ export function displayRoad(roadData, geojson) {
     roadLayer.addTo(mapState.map);
     mapState.roadLayer = roadLayer;
 
+    // Add distance labels to the road line
+    addDistanceLabelsToRoad(roadData, geojson);
+
     // Zoom to road
     mapState.map.fitBounds(roadLayer.getBounds(), {
         padding: [50, 50]
     });
 
-    // Show road info popup
-    showRoadInfoPopup(roadData, roadLayer);
+    // Show road info popup at click location (or center if no click provided)
+    if (clickLat !== null && clickLng !== null) {
+        showRoadInfoPopup(roadData, roadLayer, clickLat, clickLng);
+    } else {
+        // Use center of road bounds if no click location provided
+        const center = roadLayer.getBounds().getCenter();
+        showRoadInfoPopup(roadData, roadLayer, center.lat, center.lng);
+    }
 
     console.log('Road displayed on map');
+}
+
+/**
+ * Add distance labels along the road at 25m intervals
+ * @param {Object} roadData - Road data from NVDB
+ * @param {Object} geojson - GeoJSON geometry
+ */
+function addDistanceLabelsToRoad(roadData, geojson) {
+    // Get the sequence length
+    const totalLength = roadData.lengde || 0;
+
+    if (totalLength === 0) {
+        console.log('No road length available for labels');
+        return;
+    }
+
+    console.log(`Adding distance labels for sequence of ${Math.round(totalLength)}m`);
+
+    // Create a line from the geojson for label placement
+    let roadLine;
+    try {
+        if (geojson.type === 'LineString') {
+            roadLine = turf.lineString(geojson.coordinates);
+        } else if (geojson.type === 'MultiLineString') {
+            // Flatten multi-linestring to single line
+            const allCoords = geojson.coordinates.flat();
+            roadLine = turf.lineString(allCoords);
+        } else if (geojson.type === 'FeatureCollection') {
+            // Combine all features into one line
+            const allCoords = [];
+            geojson.features.forEach(feature => {
+                if (feature.geometry.type === 'LineString') {
+                    allCoords.push(...feature.geometry.coordinates);
+                }
+            });
+            if (allCoords.length > 0) {
+                roadLine = turf.lineString(allCoords);
+            } else {
+                console.log('No coordinates in FeatureCollection');
+                return;
+            }
+        } else {
+            console.log('Unsupported geometry type for labels');
+            return;
+        }
+
+        // Calculate actual line length using turf
+        const lineLength = turf.length(roadLine, { units: 'meters' });
+        console.log(`Line geometry length: ${Math.round(lineLength)}m`);
+
+        // Place labels every 25m
+        for (let distance = 0; distance <= totalLength; distance += 25) {
+            // Skip if distance exceeds line length
+            if (distance > lineLength) {
+                break;
+            }
+
+            // Get point at this distance along the line
+            const point = turf.along(roadLine, distance / 1000, { units: 'kilometers' });
+
+            if (point && point.geometry && point.geometry.coordinates) {
+                const [lng, lat] = point.geometry.coordinates;
+
+                // Create a divIcon with the distance label
+                const label = L.divIcon({
+                    className: 'distance-label',
+                    html: `<div style="
+                        background: white;
+                        border: 2px solid #0066cc;
+                        border-radius: 4px;
+                        padding: 2px 6px;
+                        font-size: 11px;
+                        font-weight: bold;
+                        color: #0066cc;
+                        white-space: nowrap;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    ">${distance}m</div>`,
+                    iconSize: [40, 20],
+                    iconAnchor: [20, 10]
+                });
+
+                // Add marker with label to map
+                const marker = L.marker([lat, lng], { icon: label });
+                marker.addTo(mapState.map);
+
+                // Store marker reference for cleanup (add to roadLayer)
+                if (!mapState.distanceLabels) {
+                    mapState.distanceLabels = [];
+                }
+                mapState.distanceLabels.push(marker);
+            }
+        }
+
+        console.log(`Placed ${mapState.distanceLabels ? mapState.distanceLabels.length : 0} distance labels`);
+
+    } catch (error) {
+        console.error('Error adding distance labels:', error);
+    }
 }
 
 /**
  * Show road information popup
  * @param {Object} roadData - Road data
  * @param {L.Layer} layer - Leaflet layer
+ * @param {number} clickLat - Latitude of click location
+ * @param {number} clickLng - Longitude of click location
  */
-export function showRoadInfoPopup(roadData, layer) {
-    const reference = formatRoadReference(roadData.vegsystemreferanse);
-    const kategori = roadData.vegsystemreferanse?.vegsystem?.vegkategori || 'Ukjent';
-    const kommune = roadData.kommune ? roadData.kommune[0]?.navn : 'Ukjent';
+export function showRoadInfoPopup(roadData, layer, clickLat, clickLng) {
+    const roadInfo = getRoadInfo(roadData.vegsystemreferanse);
 
-    // Calculate length if geometry available
-    let lengthText = '';
-    if (roadData.geometri) {
-        lengthText = `<br><small>Geometri tilgjengelig</small>`;
+    if (!roadInfo) {
+        return;
     }
 
+    const sequenceLength = roadData.lengde || 0;
+
+    // Build popup content with detailed information
     const popupContent = `
-        <div style="padding: 5px;">
-            <strong style="font-size: 16px;">${reference}</strong><br>
-            <small>Kategori: ${kategori}</small><br>
-            <small>Kommune: ${kommune}</small>
-            ${lengthText}
+        <div style="padding: 8px; min-width: 200px;">
+            <strong style="font-size: 16px; color: #0066cc;">${roadInfo.kortform}</strong><br>
+            <div style="margin-top: 8px; font-size: 13px;">
+                <strong>Kategori:</strong> ${roadInfo.kategoriNavn}<br>
+                ${roadData.kommune ? `<strong>Kommune:</strong> ${roadData.kommune}<br>` : ''}
+                ${roadInfo.trafikantgruppe === 'K' ? '<strong>Type:</strong> Kjørende<br>' : ''}
+                ${roadInfo.trafikantgruppe === 'G' ? '<strong>Type:</strong> Gående og syklende<br>' : ''}
+                ${sequenceLength > 0 ? `<strong>Sekvens lengde:</strong> ${Math.round(sequenceLength)} m<br>` : ''}
+                <strong>ID:</strong> ${roadData.veglenkesekvensid}<br>
+                ${roadInfo.retning ? `<strong>Retning:</strong> ${roadInfo.retning}` : ''}
+            </div>
         </div>
     `;
 
-    // Get center of layer bounds
-    const center = layer.getBounds().getCenter();
-
-    L.popup()
-        .setLatLng(center)
+    // Show popup at click location
+    L.popup({
+        maxWidth: 300,
+        closeButton: true
+    })
+        .setLatLng([clickLat, clickLng])
         .setContent(popupContent)
         .openOn(mapState.map);
 }
@@ -219,6 +420,47 @@ export function clearSelectedRoad() {
     document.getElementById('roadDetails').textContent = '';
 
     updateStatus('Vei fjernet');
+}
+
+/**
+ * Toggle road layer visibility
+ * @param {boolean} visible - Whether to show or hide the road layer
+ */
+export function toggleRoadLayer(visible) {
+    if (!mapState.roadLayer) {
+        console.log('No road layer to toggle');
+        return;
+    }
+
+    if (visible) {
+        // Show the road layer
+        if (!mapState.map.hasLayer(mapState.roadLayer)) {
+            mapState.roadLayer.addTo(mapState.map);
+            console.log('Road layer shown');
+        }
+        // Show distance labels
+        if (mapState.distanceLabels && mapState.distanceLabels.length > 0) {
+            mapState.distanceLabels.forEach(marker => {
+                if (!mapState.map.hasLayer(marker)) {
+                    marker.addTo(mapState.map);
+                }
+            });
+        }
+    } else {
+        // Hide the road layer
+        if (mapState.map.hasLayer(mapState.roadLayer)) {
+            mapState.map.removeLayer(mapState.roadLayer);
+            console.log('Road layer hidden');
+        }
+        // Hide distance labels
+        if (mapState.distanceLabels && mapState.distanceLabels.length > 0) {
+            mapState.distanceLabels.forEach(marker => {
+                if (mapState.map.hasLayer(marker)) {
+                    mapState.map.removeLayer(marker);
+                }
+            });
+        }
+    }
 }
 
 /**
@@ -255,6 +497,7 @@ export default {
     selectRoadAtPoint,
     displayRoad,
     clearSelectedRoad,
+    toggleRoadLayer,
     getMap,
     getSelectedRoad,
     mapState

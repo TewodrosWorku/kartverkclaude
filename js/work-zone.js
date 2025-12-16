@@ -26,6 +26,63 @@ export function setDistanceMarkersCallback(callback) {
 }
 
 /**
+ * Calculate distance along sequence for a point
+ * @param {L.LatLng} latlng - Point to calculate distance for
+ * @returns {number|null} Distance in meters along sequence, or null if error
+ */
+export function calculateDistanceAlongSequence(latlng) {
+    const road = getSelectedRoad();
+
+    if (!road || !road.geojson) {
+        return null;
+    }
+
+    try {
+        // Convert latlng to turf point
+        const point = turf.point([latlng.lng, latlng.lat]);
+
+        // Convert road geometry to turf format
+        let line;
+        if (road.geojson.type === 'LineString') {
+            line = turf.lineString(road.geojson.coordinates);
+        } else if (road.geojson.type === 'MultiLineString') {
+            // Flatten to single line
+            const allCoords = road.geojson.coordinates.flat();
+            line = turf.lineString(allCoords);
+        } else if (road.geojson.type === 'FeatureCollection') {
+            // Combine all features into one line
+            const allCoords = [];
+            road.geojson.features.forEach(feature => {
+                if (feature.geometry.type === 'LineString') {
+                    allCoords.push(...feature.geometry.coordinates);
+                }
+            });
+            if (allCoords.length > 0) {
+                line = turf.lineString(allCoords);
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+
+        // Find nearest point on line
+        const snapped = turf.nearestPointOnLine(line, point);
+
+        if (snapped && snapped.properties && snapped.properties.location !== undefined) {
+            // location is in kilometers, convert to meters
+            return Math.round(snapped.properties.location * 1000);
+        }
+
+        return null;
+
+    } catch (error) {
+        console.error('Error calculating distance along sequence:', error);
+        return null;
+    }
+}
+
+/**
  * Snap a point to the selected road
  * @param {L.LatLng} latlng - Point to snap
  * @returns {L.LatLng} Snapped point or original if no road selected
@@ -46,8 +103,23 @@ export function snapToRoad(latlng) {
         if (road.geojson.type === 'LineString') {
             line = turf.lineString(road.geojson.coordinates);
         } else if (road.geojson.type === 'MultiLineString') {
-            // Use first linestring for snapping
-            line = turf.lineString(road.geojson.coordinates[0]);
+            // Flatten to single line
+            const allCoords = road.geojson.coordinates.flat();
+            line = turf.lineString(allCoords);
+        } else if (road.geojson.type === 'FeatureCollection') {
+            // Combine all features into one line
+            const allCoords = [];
+            road.geojson.features.forEach(feature => {
+                if (feature.geometry.type === 'LineString') {
+                    allCoords.push(...feature.geometry.coordinates);
+                }
+            });
+            if (allCoords.length > 0) {
+                line = turf.lineString(allCoords);
+            } else {
+                console.log('Cannot snap to FeatureCollection - no coordinates');
+                return latlng;
+            }
         } else {
             console.log('Cannot snap to this geometry type');
             return latlng;
@@ -97,6 +169,10 @@ export function placeStartMarker(latlng) {
     // Snap to road if enabled
     const snappedLatLng = snapToRoad(latlng);
 
+    // Calculate distance along sequence
+    const distanceAlongSeq = calculateDistanceAlongSequence(snappedLatLng);
+    const road = getSelectedRoad();
+
     // Remove existing start marker
     if (workZoneState.startMarker) {
         getMap().removeLayer(workZoneState.startMarker);
@@ -109,11 +185,21 @@ export function placeStartMarker(latlng) {
         title: 'Start arbeidssone'
     });
 
+    // Store distance info on marker
+    marker.distanceAlongSeq = distanceAlongSeq;
+    marker.sequenceId = road ? road.veglenkesekvensid : null;
+
     // Add drag end listener
     marker.on('dragend', () => {
         const newPos = marker.getLatLng();
         const snappedPos = snapToRoad(newPos);
         marker.setLatLng(snappedPos);
+
+        // Recalculate distance
+        marker.distanceAlongSeq = calculateDistanceAlongSequence(snappedPos);
+
+        // Update tooltip
+        updateMarkerTooltip(marker, 'START');
 
         // Update distance markers
         if (updateDistanceMarkersCallback) {
@@ -123,11 +209,8 @@ export function placeStartMarker(latlng) {
         updateZoneStatus();
     });
 
-    // Bind tooltip
-    marker.bindTooltip('Start arbeidssone', {
-        permanent: false,
-        direction: 'top'
-    });
+    // Bind tooltip with distance info
+    updateMarkerTooltip(marker, 'START');
 
     // Add to map
     marker.addTo(getMap());
@@ -143,12 +226,47 @@ export function placeStartMarker(latlng) {
 }
 
 /**
+ * Update marker tooltip with distance information
+ * @param {L.Marker} marker - Marker to update
+ * @param {string} type - 'START' or 'SLUTT'
+ */
+function updateMarkerTooltip(marker, type) {
+    const distanceAlongSeq = marker.distanceAlongSeq;
+    const sequenceId = marker.sequenceId;
+    const road = getSelectedRoad();
+    const totalLength = road ? road.lengde : null;
+
+    let tooltipText = type === 'START' ? 'START arbeidssone' : 'SLUTT arbeidssone';
+
+    if (distanceAlongSeq !== null && distanceAlongSeq !== undefined) {
+        tooltipText += `<br><strong>${distanceAlongSeq}m</strong> inn i sekvensen`;
+        if (totalLength) {
+            tooltipText += ` (av ${Math.round(totalLength)}m)`;
+        }
+    }
+
+    if (sequenceId) {
+        tooltipText += `<br><small>ID: ${sequenceId}</small>`;
+    }
+
+    marker.bindTooltip(tooltipText, {
+        permanent: false,
+        direction: 'top',
+        className: 'workzone-marker-tooltip'
+    });
+}
+
+/**
  * Place end marker
  * @param {L.LatLng} latlng - Position for marker
  */
 export function placeEndMarker(latlng) {
     // Snap to road if enabled
     const snappedLatLng = snapToRoad(latlng);
+
+    // Calculate distance along sequence
+    const distanceAlongSeq = calculateDistanceAlongSequence(snappedLatLng);
+    const road = getSelectedRoad();
 
     // Remove existing end marker
     if (workZoneState.endMarker) {
@@ -162,11 +280,21 @@ export function placeEndMarker(latlng) {
         title: 'Slutt arbeidssone'
     });
 
+    // Store distance info on marker
+    marker.distanceAlongSeq = distanceAlongSeq;
+    marker.sequenceId = road ? road.veglenkesekvensid : null;
+
     // Add drag end listener
     marker.on('dragend', () => {
         const newPos = marker.getLatLng();
         const snappedPos = snapToRoad(newPos);
         marker.setLatLng(snappedPos);
+
+        // Recalculate distance
+        marker.distanceAlongSeq = calculateDistanceAlongSequence(snappedPos);
+
+        // Update tooltip
+        updateMarkerTooltip(marker, 'SLUTT');
 
         // Update distance markers
         if (updateDistanceMarkersCallback) {
@@ -176,11 +304,8 @@ export function placeEndMarker(latlng) {
         updateZoneStatus();
     });
 
-    // Bind tooltip
-    marker.bindTooltip('Slutt arbeidssone', {
-        permanent: false,
-        direction: 'top'
-    });
+    // Bind tooltip with distance info
+    updateMarkerTooltip(marker, 'SLUTT');
 
     // Add to map
     marker.addTo(getMap());
@@ -353,10 +478,34 @@ export function updateZoneStatus() {
     if (!zoneStatus) return;
 
     if (workZoneState.startMarker && workZoneState.endMarker) {
-        zoneStatus.textContent = '✓ Arbeidssone definert';
+        const startDist = workZoneState.startMarker.distanceAlongSeq;
+        const endDist = workZoneState.endMarker.distanceAlongSeq;
+
+        let statusText = '✓ Arbeidssone definert';
+        if (startDist !== null && startDist !== undefined) {
+            statusText += `<br>START: ${startDist}m`;
+        }
+        if (endDist !== null && endDist !== undefined) {
+            statusText += `<br>SLUTT: ${endDist}m`;
+        }
+
+        zoneStatus.innerHTML = statusText;
         zoneStatus.style.color = '#28a745';
-    } else if (workZoneState.startMarker || workZoneState.endMarker) {
-        zoneStatus.textContent = '⚠ Kun start eller slutt satt';
+    } else if (workZoneState.startMarker) {
+        const startDist = workZoneState.startMarker.distanceAlongSeq;
+        let statusText = '⚠ Kun START satt';
+        if (startDist !== null && startDist !== undefined) {
+            statusText += ` (${startDist}m)`;
+        }
+        zoneStatus.innerHTML = statusText;
+        zoneStatus.style.color = '#ffc107';
+    } else if (workZoneState.endMarker) {
+        const endDist = workZoneState.endMarker.distanceAlongSeq;
+        let statusText = '⚠ Kun SLUTT satt';
+        if (endDist !== null && endDist !== undefined) {
+            statusText += ` (${endDist}m)`;
+        }
+        zoneStatus.innerHTML = statusText;
         zoneStatus.style.color = '#ffc107';
     } else {
         zoneStatus.textContent = 'Ingen arbeidssone definert';
@@ -406,5 +555,6 @@ export default {
     snapToRoad,
     getWorkZone,
     setDistanceMarkersCallback,
+    calculateDistanceAlongSequence,
     workZoneState
 };
