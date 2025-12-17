@@ -31,13 +31,13 @@ export function initializeMap() {
         center: [63.4305, 10.3951], // Trondheim, Norway
         zoom: 5,
         minZoom: 4,
-        maxZoom: 19
+        maxZoom: 18  // Kartverket topo tiles max zoom level
     });
 
     // Add Kartverket tile layer
     L.tileLayer('https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png', {
         attribution: '© <a href="https://www.kartverket.no">Kartverket</a>',
-        maxZoom: 19
+        maxZoom: 18  // Kartverket topo tiles max zoom level
     }).addTo(map);
 
     // Store map instance

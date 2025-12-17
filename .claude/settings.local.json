@@ -4,7 +4,9 @@
       "WebSearch",
       "Bash(git add:*)",
       "WebFetch(domain:nvdbapiles.atlas.vegvesen.no)",
-      "WebFetch(domain:nvdb-docs.atlas.vegvesen.no)"
+      "WebFetch(domain:nvdb-docs.atlas.vegvesen.no)",
+      "WebFetch(domain:vegkart.atlas.vegvesen.no)",
+      "Bash(curl:*)"
     ]
   }
 }
