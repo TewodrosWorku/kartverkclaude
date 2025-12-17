@@ -26,19 +26,28 @@ export const mapState = {
 export function initializeMap() {
     console.log('Initializing map...');
 
-    // Create map
+    // Create map with editable support
     const map = L.map('map', {
         center: [63.4305, 10.3951], // Trondheim, Norway
         zoom: 5,
         minZoom: 4,
-        maxZoom: 18  // Kartverket topo tiles max zoom level
+        maxZoom: 21,  // Increased for better detail when placing signs/polygons
+        editable: true
     });
 
     // Add Kartverket tile layer
     L.tileLayer('https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png', {
         attribution: '© <a href="https://www.kartverket.no">Kartverket</a>',
-        maxZoom: 18  // Kartverket topo tiles max zoom level
+        maxZoom: 21,  // Increased for better detail
+        maxNativeZoom: 18  // Tiles only go to zoom 18, but allow upscaling
     }).addTo(map);
+
+    // Verify editTools are available
+    if (map.editTools) {
+        console.log('✓ Leaflet.Editable initialized successfully');
+    } else {
+        console.error('✗ Leaflet.Editable not initialized - polygon editing will not work');
+    }
 
     // Store map instance
     mapState.map = map;
@@ -59,20 +68,63 @@ export function setupMapClickHandler() {
     mapState.map.on('click', async (e) => {
         const { lat, lng } = e.latlng;
 
-        // If in work zone mode, this will be handled by work-zone.js
-        if (mapState.mode === 'setStart' || mapState.mode === 'setEnd') {
-            // Delegate to work zone handler (called from work-zone.js)
-            if (mapState.clickHandler) {
-                mapState.clickHandler(e.latlng);
-            }
+        // If in a specific mode, delegate to the mode's handler
+        if (mapState.mode && mapState.clickHandler) {
+            mapState.clickHandler(e.latlng);
             return;
         }
 
-        // Otherwise, select road at clicked location
-        await selectRoadAtPoint(lat, lng);
+        // If no mode is active, do nothing (user must click "Velg vei" button)
+        console.log('Click on map - no active mode');
     });
 
     console.log('Map click handler setup');
+}
+
+/**
+ * Activate road selection mode
+ */
+export function activateRoadSelectionMode() {
+    mapState.mode = 'selectRoad';
+    mapState.clickHandler = handleRoadSelectionClick;
+
+    // Update UI
+    const selectRoadBtn = document.getElementById('selectRoadBtn');
+    if (selectRoadBtn) {
+        selectRoadBtn.classList.add('btn-success');
+        selectRoadBtn.textContent = 'Klikk på vei...';
+    }
+
+    // Update status
+    updateStatus('Klikk på kartet for å velge vei');
+
+    console.log('Road selection mode activated');
+}
+
+/**
+ * Handle road selection click
+ * @param {L.LatLng} latlng - Clicked position
+ */
+async function handleRoadSelectionClick(latlng) {
+    await selectRoadAtPoint(latlng.lat, latlng.lng);
+    deactivateRoadSelectionMode();
+}
+
+/**
+ * Deactivate road selection mode
+ */
+export function deactivateRoadSelectionMode() {
+    mapState.mode = null;
+    mapState.clickHandler = null;
+
+    // Reset button state
+    const selectRoadBtn = document.getElementById('selectRoadBtn');
+    if (selectRoadBtn) {
+        selectRoadBtn.classList.remove('btn-success');
+        selectRoadBtn.textContent = 'Velg vei';
+    }
+
+    updateStatus('Klar');
 }
 
 /**
@@ -498,6 +550,8 @@ function updateStatus(message) {
 export default {
     initializeMap,
     setupMapClickHandler,
+    activateRoadSelectionMode,
+    deactivateRoadSelectionMode,
     selectRoadAtPoint,
     displayRoad,
     clearSelectedRoad,

@@ -90,6 +90,9 @@ async function initializeApplication() {
  * Setup all event listeners
  */
 function setupEventListeners() {
+    // Road selection button
+    setupRoadSelectionButton();
+
     // Export button
     setupExportButton();
 
@@ -106,6 +109,23 @@ function setupEventListeners() {
     setupResizeHandler();
 
     console.log('Event listeners setup complete');
+}
+
+/**
+ * Setup road selection button
+ */
+function setupRoadSelectionButton() {
+    const selectRoadBtn = document.getElementById('selectRoadBtn');
+
+    if (selectRoadBtn) {
+        selectRoadBtn.addEventListener('click', () => {
+            console.log('Select road button clicked');
+
+            import('./map-manager.js').then(module => {
+                module.activateRoadSelectionMode();
+            });
+        });
+    }
 }
 
 /**

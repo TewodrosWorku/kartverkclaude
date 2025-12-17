@@ -6,7 +6,11 @@
       "WebFetch(domain:nvdbapiles.atlas.vegvesen.no)",
       "WebFetch(domain:nvdb-docs.atlas.vegvesen.no)",
       "WebFetch(domain:vegkart.atlas.vegvesen.no)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(node extract-symbols.js:*)",
+      "Bash(pkill:*)",
+      "Bash(ls:*)",
+      "Bash(node --check:*)"
     ]
   }
 }

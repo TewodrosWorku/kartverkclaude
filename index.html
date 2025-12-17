@@ -43,6 +43,14 @@
                 <p id="roadDetails" class="small-text"></p>
             </div>
 
+            <!-- Road Selection -->
+            <div class="road-selection-controls">
+                <h3>Veivelger</h3>
+                <button id="selectRoadBtn" class="btn btn-primary" aria-label="Velg vei på kartet">
+                    Velg vei
+                </button>
+            </div>
+
             <!-- Work Zone Controls -->
             <div class="work-zone-controls">
                 <h3>Arbeidssone</h3>
@@ -150,17 +158,24 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-editable@1.2.0/src/Leaflet.Editable.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/proj4@2.9.2/dist/proj4.js"></script>
 
-    <!-- Verify proj4 loaded -->
+    <!-- Verify libraries loaded -->
     <script>
         window.addEventListener('load', function() {
             if (window.proj4) {
                 console.log('✓ proj4 library loaded successfully');
             } else {
                 console.error('✗ proj4 library failed to load');
+            }
+
+            if (window.L && window.L.Editable) {
+                console.log('✓ Leaflet.Editable library loaded successfully');
+            } else {
+                console.error('✗ Leaflet.Editable library failed to load');
             }
         });
     </script>
