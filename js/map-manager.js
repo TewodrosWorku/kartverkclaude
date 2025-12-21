@@ -4,7 +4,7 @@
  * @module map-manager
  */
 
-import { findNearestRoad, getRoadDetails, formatRoadReference, getRoadInfo, parseWKTToGeoJSON } from './nvdb-api.js';
+import { findNearestRoad, getRoadDetails, getSpeedLimit, getADT, formatRoadReference, getRoadInfo, parseWKTToGeoJSON } from './nvdb-api.js';
 
 // Global map state
 export const mapState = {
@@ -249,8 +249,12 @@ export async function selectRoadAtPoint(lat, lng) {
             detailsHtml += `<strong>Trafikantgruppe:</strong> ${trafikantMap[roadInfo.trafikantgruppe] || roadInfo.trafikantgruppe}<br>`;
         }
         if (roadInfo.retning) {
-            detailsHtml += `<strong>Retning:</strong> ${roadInfo.retning}`;
+            detailsHtml += `<strong>Retning:</strong> ${roadInfo.retning}<br>`;
         }
+
+        // Add placeholder for speed limit and ÅDT (will be fetched asynchronously)
+        detailsHtml += `<strong>Fartsgrense:</strong> <span id="speedLimit">Henter...</span><br>`;
+        detailsHtml += `<strong>ÅDT:</strong> <span id="adt">Henter...</span>`;
     } else if (details.kommune) {
         detailsHtml = `<strong>Kommune:</strong> ${details.kommune}`;
     }
@@ -263,7 +267,43 @@ export async function selectRoadAtPoint(lat, lng) {
         console.error('✗ roadDetails element not found');
     }
 
+    // Fetch speed limit and ÅDT asynchronously
+    fetchAdditionalRoadData(details.veglenkesekvensid);
+
     updateStatus(`Vei valgt: ${reference}`);
+}
+
+/**
+ * Fetch additional road data (speed limit, ÅDT) asynchronously
+ * @param {string} veglenkesekvensid - Road link sequence ID
+ */
+async function fetchAdditionalRoadData(veglenkesekvensid) {
+    // Fetch speed limit
+    const speedLimit = await getSpeedLimit(veglenkesekvensid);
+    const speedLimitElement = document.getElementById('speedLimit');
+    if (speedLimitElement) {
+        if (speedLimit) {
+            speedLimitElement.textContent = `${speedLimit} km/h`;
+        } else {
+            speedLimitElement.textContent = 'Ikke tilgjengelig';
+            speedLimitElement.style.fontStyle = 'italic';
+            speedLimitElement.style.color = '#999';
+        }
+    }
+
+    // Fetch ÅDT
+    const adt = await getADT(veglenkesekvensid);
+    const adtElement = document.getElementById('adt');
+    if (adtElement) {
+        if (adt) {
+            // Format with thousands separator
+            adtElement.textContent = adt.toLocaleString('no-NO');
+        } else {
+            adtElement.textContent = 'Ikke tilgjengelig';
+            adtElement.style.fontStyle = 'italic';
+            adtElement.style.color = '#999';
+        }
+    }
 }
 
 /**

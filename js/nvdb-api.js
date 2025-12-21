@@ -152,6 +152,76 @@ export async function getRoadDetails(veglenkesekvensid) {
 }
 
 /**
+ * Get speed limit for a road segment
+ * @param {string} veglenkesekvensid - Road link sequence ID
+ * @returns {Promise<number|null>} Speed limit in km/h or null
+ */
+export async function getSpeedLimit(veglenkesekvensid) {
+    if (!veglenkesekvensid) return null;
+
+    console.log(`Fetching speed limit for veglenkesekvens: ${veglenkesekvensid}`);
+
+    // Object type 105 = Fartsgrense (Speed limit)
+    const data = await makeRequest(`/vegobjekter/api/v4/vegobjekter/105`, {
+        veglenkesekvens: veglenkesekvensid,
+        inkluder: 'egenskaper'
+    });
+
+    if (!data || !data.objekter || data.objekter.length === 0) {
+        console.log('No speed limit found for this road segment');
+        return null;
+    }
+
+    // Get the first speed limit object
+    const speedLimitObj = data.objekter[0];
+
+    // Find the "Fartsgrense" property (property type 2021)
+    const speedProp = speedLimitObj.egenskaper?.find(prop => prop.id === 2021);
+
+    if (speedProp && speedProp.verdi) {
+        console.log(`Speed limit found: ${speedProp.verdi} km/h`);
+        return parseInt(speedProp.verdi);
+    }
+
+    return null;
+}
+
+/**
+ * Get ÅDT (Annual Average Daily Traffic) for a road segment
+ * @param {string} veglenkesekvensid - Road link sequence ID
+ * @returns {Promise<number|null>} ÅDT value or null
+ */
+export async function getADT(veglenkesekvensid) {
+    if (!veglenkesekvensid) return null;
+
+    console.log(`Fetching ÅDT for veglenkesekvens: ${veglenkesekvensid}`);
+
+    // Object type 540 = Trafikkmengde (Traffic volume / ÅDT)
+    const data = await makeRequest(`/vegobjekter/api/v4/vegobjekter/540`, {
+        veglenkesekvens: veglenkesekvensid,
+        inkluder: 'egenskaper'
+    });
+
+    if (!data || !data.objekter || data.objekter.length === 0) {
+        console.log('No ÅDT data found for this road segment');
+        return null;
+    }
+
+    // Get the first traffic volume object
+    const adtObj = data.objekter[0];
+
+    // Find the "ÅDT, total" property (property type 4623)
+    const adtProp = adtObj.egenskaper?.find(prop => prop.id === 4623);
+
+    if (adtProp && adtProp.verdi) {
+        console.log(`ÅDT found: ${adtProp.verdi}`);
+        return parseInt(adtProp.verdi);
+    }
+
+    return null;
+}
+
+/**
  * Get full category name in Norwegian
  * @param {string} code - Category code (E, R, F, K, P, S)
  * @returns {string} Full Norwegian name
@@ -400,6 +470,8 @@ export function parseWKTToGeoJSON(wkt, srid = 5973) {
 export default {
     findNearestRoad,
     getRoadDetails,
+    getSpeedLimit,
+    getADT,
     formatRoadReference,
     getRoadInfo,
     parseWKTToGeoJSON
