@@ -3,12 +3,12 @@
 
 <svg
    version="1.1"
-   width="56"
-   height="22.406866"
-   viewBox="0 0 56 22.406866"
+   width="37.468311"
+   height="15.397383"
+   viewBox="0 0 37.468312 15.397383"
    content="&lt;mxfile host=&quot;app.diagrams.net&quot; agent=&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0&quot; version=&quot;29.2.7&quot;&gt;&#10;  &lt;diagram name=&quot;Page-1&quot; id=&quot;qqNrXOTwIJJAyaOyKCFB&quot;&gt;&#10;    &lt;mxGraphModel dx=&quot;479&quot; dy=&quot;312&quot; grid=&quot;1&quot; gridSize=&quot;10&quot; guides=&quot;1&quot; tooltips=&quot;1&quot; connect=&quot;1&quot; arrows=&quot;1&quot; fold=&quot;1&quot; page=&quot;1&quot; pageScale=&quot;1&quot; pageWidth=&quot;827&quot; pageHeight=&quot;1169&quot; math=&quot;0&quot; shadow=&quot;0&quot;&gt;&#10;      &lt;root&gt;&#10;        &lt;mxCell id=&quot;vwWQ6UeYZBWAZ6c9ZCf1-0&quot; /&gt;&#10;        &lt;mxCell id=&quot;vwWQ6UeYZBWAZ6c9ZCf1-1&quot; parent=&quot;vwWQ6UeYZBWAZ6c9ZCf1-0&quot; /&gt;&#10;        &lt;mxCell id=&quot;euruUwzjLBDd8xZNKgf8-416&quot; parent=&quot;vwWQ6UeYZBWAZ6c9ZCf1-1&quot; style=&quot;verticalAlign=middle;align=center;overflow=width;vsdxID=6;fillColor=#9A9A9A;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=#9A9A9A;strokeWidth=3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;&quot; value=&quot;&amp;lt;div style=&amp;quot;font-size: 1px&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;&quot; vertex=&quot;1&quot;&gt;&#10;          &lt;mxGeometry height=&quot;53&quot; width=&quot;19&quot; x=&quot;321&quot; y=&quot;401&quot; as=&quot;geometry&quot; /&gt;&#10;        &lt;/mxCell&gt;&#10;        &lt;mxCell id=&quot;euruUwzjLBDd8xZNKgf8-417&quot; edge=&quot;1&quot; parent=&quot;vwWQ6UeYZBWAZ6c9ZCf1-1&quot; style=&quot;vsdxID=8;edgeStyle=none;startArrow=none;endArrow=none;startSize=5;endSize=5;strokeColor=#FFFFFF;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=none;rounded=0;&quot; value=&quot;&quot;&gt;&#10;          &lt;mxGeometry relative=&quot;1&quot; x=&quot;-421&quot; y=&quot;-582&quot; as=&quot;geometry&quot;&gt;&#10;            &lt;Array as=&quot;points&quot; /&gt;&#10;            &lt;mxPoint x=&quot;330&quot; y=&quot;400&quot; as=&quot;sourcePoint&quot; /&gt;&#10;            &lt;mxPoint x=&quot;320&quot; y=&quot;414&quot; as=&quot;targetPoint&quot; /&gt;&#10;          &lt;/mxGeometry&gt;&#10;        &lt;/mxCell&gt;&#10;        &lt;mxCell id=&quot;euruUwzjLBDd8xZNKgf8-418&quot; edge=&quot;1&quot; parent=&quot;vwWQ6UeYZBWAZ6c9ZCf1-1&quot; style=&quot;vsdxID=9;edgeStyle=none;startArrow=none;endArrow=none;startSize=5;endSize=5;strokeColor=#FFFFFF;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=none;rounded=0;&quot; value=&quot;&quot;&gt;&#10;          &lt;mxGeometry relative=&quot;1&quot; x=&quot;-421&quot; y=&quot;-582&quot; as=&quot;geometry&quot;&gt;&#10;            &lt;Array as=&quot;points&quot; /&gt;&#10;            &lt;mxPoint x=&quot;331&quot; y=&quot;400&quot; as=&quot;sourcePoint&quot; /&gt;&#10;            &lt;mxPoint x=&quot;341&quot; y=&quot;414&quot; as=&quot;targetPoint&quot; /&gt;&#10;          &lt;/mxGeometry&gt;&#10;        &lt;/mxCell&gt;&#10;        &lt;mxCell id=&quot;euruUwzjLBDd8xZNKgf8-419&quot; edge=&quot;1&quot; parent=&quot;vwWQ6UeYZBWAZ6c9ZCf1-1&quot; style=&quot;vsdxID=10;edgeStyle=none;startArrow=none;endArrow=none;startSize=5;endSize=5;strokeColor=#FFFFFF;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=none;rounded=0;&quot;&gt;&#10;          &lt;mxGeometry relative=&quot;1&quot; x=&quot;-421&quot; y=&quot;-582&quot; as=&quot;geometry&quot;&gt;&#10;            &lt;mxPoint x=&quot;-421&quot; y=&quot;-582&quot; as=&quot;offset&quot; /&gt;&#10;            &lt;Array as=&quot;points&quot; /&gt;&#10;            &lt;mxPoint x=&quot;320&quot; y=&quot;414&quot; as=&quot;sourcePoint&quot; /&gt;&#10;            &lt;mxPoint x=&quot;341&quot; y=&quot;414&quot; as=&quot;targetPoint&quot; /&gt;&#10;          &lt;/mxGeometry&gt;&#10;        &lt;/mxCell&gt;&#10;      &lt;/root&gt;&#10;    &lt;/mxGraphModel&gt;&#10;  &lt;/diagram&gt;&#10;&lt;/mxfile&gt;&#10;"
    id="svg14"
-   sodipodi:docname="privatbil.svg"
+   sodipodi:docname="privatbil_s.svg"
    inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -25,20 +25,20 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="7.9821429"
-     inkscape:cx="28.751678"
-     inkscape:cy="11.588367"
+     inkscape:zoom="3.9910714"
+     inkscape:cx="11.149888"
+     inkscape:cy="19.418345"
      inkscape:window-width="1280"
      inkscape:window-height="649"
      inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg14" />
+     inkscape:current-layer="g11" />
   <defs
      id="defs1" />
   <g
      id="g13"
-     transform="rotate(90,27.5,28)">
+     transform="translate(11.538551,-10.530615)">
     <g
        data-cell-id="vwWQ6UeYZBWAZ6c9ZCf1-0"
        id="g12">
@@ -46,98 +46,102 @@
          data-cell-id="vwWQ6UeYZBWAZ6c9ZCf1-1"
          id="g11">
         <g
-           data-cell-id="euruUwzjLBDd8xZNKgf8-416"
-           id="g4">
+           id="g15"
+           transform="matrix(0,0.68717251,-0.66907696,0,25.59522,10.874201)">
           <g
-             id="g1">
-            <path
-               d="M 1,54 H 20 V 1 H 1 v 53"
-               fill="#9a9a9a"
-               stroke="#9a9a9a"
-               stroke-width="3"
-               stroke-miterlimit="10"
-               pointer-events="all"
-               id="path1" />
-          </g>
-          <g
-             id="g3">
+             data-cell-id="euruUwzjLBDd8xZNKgf8-416"
+             id="g4">
             <g
-               id="g2">
-              <switch
-                 id="switch1">
-                <foreignObject
-                   style="overflow: visible; text-align: left;"
-                   pointer-events="none"
-                   width="100%"
-                   height="100%"
-                   requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-                  <xhtml:div
-                     style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 21px; height: 1px; padding-top: 28px; margin-left: 0px;">
+               id="g1">
+              <path
+                 d="M 1,54 H 20 V 1 H 1 v 53"
+                 fill="#9a9a9a"
+                 stroke="#9a9a9a"
+                 stroke-width="3"
+                 stroke-miterlimit="10"
+                 pointer-events="all"
+                 id="path1" />
+            </g>
+            <g
+               id="g3">
+              <g
+                 id="g2">
+                <switch
+                   id="switch1">
+                  <foreignObject
+                     style="overflow: visible; text-align: left;"
+                     pointer-events="none"
+                     width="100%"
+                     height="100%"
+                     requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
                     <xhtml:div
-                       style="box-sizing: border-box; font-size: 0; text-align: center; width: 19px; max-height: 53px; overflow: hidden; color: #000000; ">
+                       style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 21px; height: 1px; padding-top: 28px; margin-left: 0px;">
                       <xhtml:div
-                         style="display: inline-block; font-size: 12px; font-family: Helvetica; color: light-dark(#000000, #ffffff); line-height: 1.2; pointer-events: all; width: 100%; white-space: normal; word-wrap: normal; ">
+                         style="box-sizing: border-box; font-size: 0; text-align: center; width: 19px; max-height: 53px; overflow: hidden; color: #000000; ">
                         <xhtml:div
-                           style="font-size: 1px" />
+                           style="display: inline-block; font-size: 12px; font-family: Helvetica; color: light-dark(#000000, #ffffff); line-height: 1.2; pointer-events: all; width: 100%; white-space: normal; word-wrap: normal; ">
+                          <xhtml:div
+                             style="font-size: 1px" />
+                        </xhtml:div>
                       </xhtml:div>
                     </xhtml:div>
-                  </xhtml:div>
-                </foreignObject>
-                <text
-                   x="11"
-                   y="31"
-                   fill="light-dark(#000000, #ffffff)"
-                   font-family="Helvetica"
-                   font-size="12px"
-                   text-anchor="middle"
-                   id="text1" />
-              </switch>
+                  </foreignObject>
+                  <text
+                     x="11"
+                     y="31"
+                     fill="light-dark(#000000, #ffffff)"
+                     font-family="Helvetica"
+                     font-size="12px"
+                     text-anchor="middle"
+                     id="text1" />
+                </switch>
+              </g>
             </g>
           </g>
-        </g>
-        <g
-           data-cell-id="euruUwzjLBDd8xZNKgf8-417"
-           id="g6">
           <g
-             transform="translate(0.5,0.5)"
-             id="g5">
-            <path
-               d="M 10,0 0,14"
-               fill="none"
-               stroke="#ffffff"
-               stroke-miterlimit="10"
-               pointer-events="stroke"
-               id="path4" />
+             data-cell-id="euruUwzjLBDd8xZNKgf8-417"
+             id="g6">
+            <g
+               transform="translate(0.5,0.5)"
+               id="g5">
+              <path
+                 d="M 10,0 0,14"
+                 fill="none"
+                 stroke="#ffffff"
+                 stroke-miterlimit="10"
+                 pointer-events="stroke"
+                 id="path4" />
+            </g>
           </g>
-        </g>
-        <g
-           data-cell-id="euruUwzjLBDd8xZNKgf8-418"
-           id="g8">
           <g
-             transform="translate(0.5,0.5)"
-             id="g7">
-            <path
-               d="M 11,0 21,14"
-               fill="none"
-               stroke="#ffffff"
-               stroke-miterlimit="10"
-               pointer-events="stroke"
-               id="path6" />
+             data-cell-id="euruUwzjLBDd8xZNKgf8-418"
+             id="g8">
+            <g
+               transform="translate(0.5,0.5)"
+               id="g7">
+              <path
+                 d="M 11,0 21,14"
+                 fill="none"
+                 stroke="#ffffff"
+                 stroke-miterlimit="10"
+                 pointer-events="stroke"
+                 id="path6" />
+            </g>
           </g>
-        </g>
-        <g
-           data-cell-id="euruUwzjLBDd8xZNKgf8-419"
-           id="g10">
           <g
-             transform="translate(0.5,0.5)"
-             id="g9">
-            <path
-               d="M 0,14 H 21"
-               fill="none"
-               stroke="#ffffff"
-               stroke-miterlimit="10"
-               pointer-events="stroke"
-               id="path8" />
+             data-cell-id="euruUwzjLBDd8xZNKgf8-419"
+             id="g10">
+            <g
+               transform="translate(0.5,0.5)"
+               id="g9">
+              <path
+                 d="M 0,14 H 21"
+                 fill="none"
+                 stroke="#ffffff"
+                 stroke-miterlimit="10"
+                 pointer-events="stroke"
+                 id="path8" />
+            </g>
           </g>
         </g>
       </g>
@@ -145,7 +149,7 @@
   </g>
   <switch
      id="switch14"
-     transform="rotate(90,27.56264,27.93736)">
+     transform="translate(10.661594,-10.906454)">
     <g
        requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
        id="g14" />
