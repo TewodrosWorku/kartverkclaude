@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="18.139999mm"
+   height="3.21mm"
+   viewBox="0 0 18.14 3.21"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   sodipodi:docname="markerigsdobbletskilting_cleaned.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2"
+     inkscape:cx="322.25"
+     inkscape:cy="24.25"
+     inkscape:window-width="1904"
+     inkscape:window-height="993"
+     inkscape:window-x="3892"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-9.687307,-211.69971)">
+    <g
+       class="com.sun.star.drawing.TextShape"
+       id="g65"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   id="id3">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4100"
+   y="1232"
+   width="12501"
+   height="1137"
+   id="rect63" />
+
+        <text
+   class="TextShape"
+   id="text65"><tspan
+     class="TextParagraph"
+     font-family="Arial, sans-serif"
+     font-size="635px"
+     font-weight="700"
+     id="tspan65"><tspan
+       class="TextPosition"
+       x="4241"
+       y="2092"
+       id="tspan64"><tspan
+         fill="#000000"
+         stroke="none"
+         id="tspan63">Tegnforklaring</tspan></tspan></tspan></text>
+
+       </g>
+
+      </g>
+    <g
+       class="com.sun.star.drawing.LineShape"
+       id="g239"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   id="id129">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4575"
+   y="11279"
+   width="1814"
+   height="321"
+   id="rect232" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 6375,11439 H 6225"
+   id="path232" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 6150,11439 H 6000"
+   id="path233" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 5925,11439 H 5775"
+   id="path234" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 5700,11439 H 5550"
+   id="path235" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 5475,11439 H 5325"
+   id="path236" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 5250,11439 H 5100"
+   id="path237" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="M 5025,11439 H 4875"
+   id="path238" />
+
+        <path
+   fill="#000000"
+   stroke="none"
+   d="m 4575,11439 297,-159 h 22 v 12 l -254,136 h 254 v 22 h -254 l 254,136 v 13 h -22 z"
+   id="path239" />
+
+       </g>
+
+      </g>
+  </g>
+</svg>

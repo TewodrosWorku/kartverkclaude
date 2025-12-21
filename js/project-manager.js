@@ -6,7 +6,7 @@
 
 import { getMap, getSelectedRoad, selectRoadAtPoint, clearSelectedRoad } from './map-manager.js';
 import { getWorkZone, placeStartMarker, placeEndMarker, clearWorkZone, workZoneState } from './work-zone.js';
-import { getPlacedSigns, restoreSigns, clearAllSigns } from './sign-manager.js';
+import { getPlacedSigns, restoreSigns, clearAllSigns, clearUndoHistory } from './sign-manager.js';
 import { updateDistanceMarkers, clearDistanceMarkers } from './distance-markers.js';
 
 // Project state
@@ -359,6 +359,9 @@ export function clearCurrentProject() {
     clearWorkZone();
     clearAllSigns();
     clearDistanceMarkers();
+
+    // Clear undo history (fresh start for new project)
+    clearUndoHistory();
 
     // Reset current project
     projectState.currentProject = null;

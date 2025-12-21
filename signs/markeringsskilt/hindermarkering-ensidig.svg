@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="2.98mm"
+   height="1.12mm"
+   viewBox="0 0 2.9800001 1.12"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   sodipodi:docname="hindermarkeirngensidig_cleaned.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2"
+     inkscape:cx="312.75"
+     inkscape:cy="43.75"
+     inkscape:window-width="1904"
+     inkscape:window-height="993"
+     inkscape:window-x="3892"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-16.707307,-182.67971)">
+    <g
+       class="com.sun.star.drawing.LineShape"
+       id="g122"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   id="id45">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5277"
+   y="8412"
+   width="298"
+   height="77"
+   id="rect121" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="76"
+   stroke-linejoin="miter"
+   d="M 5574,8450 H 5277"
+   id="path121" />
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g125"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g123">
+        <g
+   id="id46">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5375"
+   y="8390"
+   width="102"
+   height="43"
+   id="rect122" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5375,8390 v 40 l 101,1 v -41 z"
+   id="path122" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g124">
+        <g
+   id="id47">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5362"
+   y="8377"
+   width="128"
+   height="68"
+   id="rect123" />
+
+         <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="miter"
+   d="m 5375,8390 v 40 l 101,1 v -41 z"
+   id="path123" />
+
+        </g>
+
+       </g>
+
+      </g>
+  </g>
+</svg>

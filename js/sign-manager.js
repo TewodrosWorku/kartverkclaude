@@ -11,8 +11,185 @@ import { snapToRoad } from './work-zone.js';
 const signState = {
     library: null,
     placedSigns: [],
-    snapEnabled: true
+    snapEnabled: true,
+    // Undo/Redo history
+    history: [],
+    historyIndex: -1,
+    maxHistorySize: 10,
+    isUndoRedoOperation: false // Flag to prevent recording undo/redo actions
 };
+
+/**
+ * Add action to history for undo/redo
+ * @param {Object} action - Action object with type and data
+ */
+function addToHistory(action) {
+    // Don't record if this is an undo/redo operation
+    if (signState.isUndoRedoOperation) {
+        return;
+    }
+
+    // Remove any actions after current index (when undoing and then doing new action)
+    signState.history = signState.history.slice(0, signState.historyIndex + 1);
+
+    // Add new action
+    signState.history.push(action);
+    signState.historyIndex++;
+
+    // Limit history size
+    if (signState.history.length > signState.maxHistorySize) {
+        signState.history.shift();
+        signState.historyIndex--;
+    }
+
+    console.log(`History: ${signState.history.length} actions, index: ${signState.historyIndex}`);
+}
+
+/**
+ * Undo last action
+ */
+export function undo() {
+    if (signState.historyIndex < 0) {
+        console.log('Nothing to undo');
+        return;
+    }
+
+    signState.isUndoRedoOperation = true;
+
+    const action = signState.history[signState.historyIndex];
+    console.log('Undoing:', action.type);
+
+    // Perform undo based on action type
+    switch (action.type) {
+        case 'add_sign':
+            // Remove the sign
+            removeSignInternal(action.data.id);
+            break;
+
+        case 'delete_sign':
+            // Restore the sign
+            restoreSign(action.data);
+            break;
+
+        case 'move_sign':
+            // Move back to old position
+            moveSignInternal(action.data.id, action.data.oldPosition);
+            break;
+
+        case 'rotate_sign':
+            // Rotate back to old angle
+            setSignRotation(action.data.id, action.data.oldRotation);
+            break;
+
+        case 'duplicate_sign':
+            // Remove the duplicated sign
+            removeSignInternal(action.data.newSignId);
+            break;
+
+        case 'add_polygon':
+            // Remove the polygon
+            removePolygon(action.data.id);
+            break;
+
+        case 'delete_polygon':
+            // Restore the polygon
+            restorePolygon(action.data);
+            break;
+
+        case 'add_polyline':
+            // Remove the polyline
+            removePolyline(action.data.id);
+            break;
+
+        case 'delete_polyline':
+            // Restore the polyline
+            restorePolyline(action.data);
+            break;
+    }
+
+    signState.historyIndex--;
+    signState.isUndoRedoOperation = false;
+
+    console.log(`Undo complete. History index: ${signState.historyIndex}`);
+}
+
+/**
+ * Redo last undone action
+ */
+export function redo() {
+    if (signState.historyIndex >= signState.history.length - 1) {
+        console.log('Nothing to redo');
+        return;
+    }
+
+    signState.isUndoRedoOperation = true;
+    signState.historyIndex++;
+
+    const action = signState.history[signState.historyIndex];
+    console.log('Redoing:', action.type);
+
+    // Perform redo based on action type
+    switch (action.type) {
+        case 'add_sign':
+            // Re-add the sign
+            restoreSign(action.data);
+            break;
+
+        case 'delete_sign':
+            // Remove the sign again
+            removeSignInternal(action.data.id);
+            break;
+
+        case 'move_sign':
+            // Move to new position
+            moveSignInternal(action.data.id, action.data.newPosition);
+            break;
+
+        case 'rotate_sign':
+            // Rotate to new angle
+            setSignRotation(action.data.id, action.data.newRotation);
+            break;
+
+        case 'duplicate_sign':
+            // Re-add the duplicated sign
+            restoreSign(action.data);
+            break;
+
+        case 'add_polygon':
+            // Re-add the polygon
+            restorePolygon(action.data);
+            break;
+
+        case 'delete_polygon':
+            // Remove the polygon again
+            removePolygon(action.data.id);
+            break;
+
+        case 'add_polyline':
+            // Re-add the polyline
+            restorePolyline(action.data);
+            break;
+
+        case 'delete_polyline':
+            // Remove the polyline again
+            removePolyline(action.data.id);
+            break;
+    }
+
+    signState.isUndoRedoOperation = false;
+
+    console.log(`Redo complete. History index: ${signState.historyIndex}`);
+}
+
+/**
+ * Clear undo/redo history
+ * Useful when starting a new project or loading a saved project
+ */
+export function clearUndoHistory() {
+    signState.history = [];
+    signState.historyIndex = -1;
+    console.log('Undo history cleared');
+}
 
 /**
  * Get category name from folder path
@@ -92,36 +269,60 @@ async function loadSignLibrary() {
 /**
  * Render sign palette in UI
  * @param {Object} library - Sign library object
+ * @param {string} searchQuery - Optional search filter
  */
-function renderSignPalette(library) {
+function renderSignPalette(library, searchQuery = '') {
     if (!library) {
         console.error('No library to render');
         return;
     }
 
-    // Find a sign container - try common IDs
-    let container = document.getElementById('signPalette')
-                 || document.getElementById('speedSigns')
-                 || document.getElementById('warningSigns')
-                 || document.getElementById('prohibitionSigns');
+    const container = document.getElementById('signContainer');
 
     if (!container) {
-        console.error('No sign container found in DOM');
+        console.error('Sign container not found in DOM');
         return;
     }
 
     // Clear existing content
     container.innerHTML = '';
 
+    // Filter signs based on search query
+    let filteredSigns = Object.values(library);
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredSigns = filteredSigns.filter(sign => {
+            // Search in sign ID (e.g., "102_2")
+            const idMatch = sign.id.toLowerCase().includes(query);
+            // Search in sign name (e.g., "Farlige svinger")
+            const nameMatch = sign.name.toLowerCase().includes(query);
+            // Search in file path for number matches
+            const fileMatch = sign.file.toLowerCase().includes(query);
+
+            return idMatch || nameMatch || fileMatch;
+        });
+    }
+
     // Group signs by category
     const categories = {};
-    Object.values(library).forEach(sign => {
+    filteredSigns.forEach(sign => {
         const cat = sign.category || 'Generelt';
         if (!categories[cat]) {
             categories[cat] = [];
         }
         categories[cat].push(sign);
     });
+
+    // Show "no results" message if filtered list is empty
+    if (filteredSigns.length === 0) {
+        const noResults = document.createElement('div');
+        noResults.style.padding = '20px';
+        noResults.style.textAlign = 'center';
+        noResults.style.color = '#666';
+        noResults.textContent = `Ingen skilt funnet for "${searchQuery}"`;
+        container.appendChild(noResults);
+        return;
+    }
 
     // Render each category
     Object.keys(categories).sort().forEach(categoryName => {
@@ -132,7 +333,7 @@ function renderSignPalette(library) {
 
         // Category header
         const header = document.createElement('h4');
-        header.textContent = categoryName;
+        header.textContent = `${categoryName} (${categories[categoryName].length})`;
         header.style.fontSize = '14px';
         header.style.fontWeight = 'bold';
         header.style.marginBottom = '10px';
@@ -142,8 +343,8 @@ function renderSignPalette(library) {
         // Signs grid
         const grid = document.createElement('div');
         grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(80px, 1fr))';
-        grid.style.gap = '10px';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(100px, 1fr))';
+        grid.style.gap = '12px';
 
         categories[categoryName].forEach(sign => {
             const signItem = createSignItem(sign);
@@ -154,7 +355,7 @@ function renderSignPalette(library) {
         container.appendChild(categorySection);
     });
 
-    console.log(`Sign palette rendered with ${Object.keys(library).length} signs in ${Object.keys(categories).length} categories`);
+    console.log(`Sign palette rendered: ${filteredSigns.length} of ${Object.keys(library).length} signs`);
 }
 
 /**
@@ -175,6 +376,11 @@ function createSignItem(sign) {
     img.src = sign.file;
     img.alt = sign.name;
     img.draggable = false; // Prevent image drag, only container
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '60px';
+    img.style.objectFit = 'contain';
+    img.style.display = 'block';
+    img.style.margin = '0 auto';
     item.appendChild(img);
 
     // Create label
@@ -363,6 +569,16 @@ function placePolygon(signId, latlng, vertices = null) {
 
     signState.placedSigns.push(placedPolygon);
 
+    // Record polygon placement in history
+    addToHistory({
+        type: 'add_polygon',
+        data: {
+            id: placedPolygon.id,
+            signId: placedPolygon.signId,
+            vertices: placedPolygon.vertices
+        }
+    });
+
     // Update vertices when polygon is edited
     polygon.on('editable:vertex:dragend editable:vertex:deleted editable:vertex:new', () => {
         const latLngs = polygon.getLatLngs()[0];
@@ -426,6 +642,16 @@ function removePolygon(polygonId) {
 
     const placedPolygon = signState.placedSigns[index];
 
+    // Record deletion in history
+    addToHistory({
+        type: 'delete_polygon',
+        data: {
+            id: placedPolygon.id,
+            signId: placedPolygon.signId,
+            vertices: placedPolygon.vertices
+        }
+    });
+
     // Remove from map
     if (placedPolygon.polygon) {
         getMap().removeLayer(placedPolygon.polygon);
@@ -438,6 +664,203 @@ function removePolygon(polygonId) {
     updateSignCount();
 
     console.log('Polygon removed');
+}
+
+/**
+ * Place a polyline (line) on the map
+ * @param {string} signId - Sign ID from library
+ * @param {L.LatLng} latlng - Starting position
+ * @param {Array} vertices - Optional vertices for line restoration
+ * @returns {Object|null} Placed polyline object
+ */
+function placePolyline(signId, latlng, vertices = null) {
+    const sign = signState.library[signId];
+
+    if (!sign) {
+        console.error(`Sign not found: ${signId}`);
+        return null;
+    }
+
+    const map = getMap();
+    if (!map) {
+        console.error('Map not available');
+        return null;
+    }
+
+    // Determine line weight based on sign type
+    let weight;
+    if (signId.includes('thin')) {
+        weight = 4;
+    } else if (signId.includes('medium')) {
+        weight = 8;
+    } else if (signId.includes('thick')) {
+        weight = 12;
+    } else {
+        weight = 8; // default
+    }
+
+    // Create polyline coordinates
+    let lineCoords;
+    if (vertices && vertices.length >= 2) {
+        // Restore existing line
+        lineCoords = vertices;
+    } else {
+        // Create a default short line (will be edited by user)
+        const offsetLat = 0.0001; // ~10m
+        lineCoords = [
+            [latlng.lat, latlng.lng],
+            [latlng.lat + offsetLat, latlng.lng]
+        ];
+    }
+
+    // Create editable polyline
+    const polyline = L.polyline(lineCoords, {
+        color: 'red',
+        weight: weight,
+        opacity: 1.0
+    });
+
+    // Create popup with delete option
+    const popup = L.popup();
+    polyline.bindPopup(popup);
+
+    polyline.on('popupopen', () => {
+        const popupContainer = createPolylinePopupElement(sign, polyline._leaflet_id);
+        popup.setContent(popupContainer);
+    });
+
+    // Toggle editing on single click
+    polyline.on('click', (e) => {
+        L.DomEvent.stopPropagation(e); // Prevent map click
+
+        if (polyline.editEnabled()) {
+            // Disable editing
+            polyline.disableEdit();
+            console.log('Polyline editing disabled');
+        } else {
+            // Enable editing
+            if (map.editTools) {
+                polyline.enableEdit();
+                console.log('Polyline editing enabled');
+            }
+        }
+    });
+
+    // Open popup on double-click
+    polyline.on('dblclick', (e) => {
+        L.DomEvent.stopPropagation(e); // Prevent map zoom
+        polyline.openPopup(e.latlng);
+    });
+
+    // Add to map
+    polyline.addTo(map);
+
+    // Store in placed signs
+    const placedPolyline = {
+        id: polyline._leaflet_id,
+        signId: signId,
+        polyline: polyline,
+        isPolyline: true,
+        vertices: lineCoords
+    };
+
+    signState.placedSigns.push(placedPolyline);
+
+    // Record polyline placement in history
+    addToHistory({
+        type: 'add_polyline',
+        data: {
+            id: placedPolyline.id,
+            signId: placedPolyline.signId,
+            vertices: placedPolyline.vertices
+        }
+    });
+
+    // Update vertices when polyline is edited
+    polyline.on('editable:vertex:dragend editable:vertex:deleted editable:vertex:new', () => {
+        const latLngs = polyline.getLatLngs();
+        placedPolyline.vertices = latLngs.map(ll => [ll.lat, ll.lng]);
+    });
+
+    // Update UI
+    updateSignCount();
+
+    console.log(`Placed polyline: ${sign.name} (weight: ${weight}px)`);
+    return placedPolyline;
+}
+
+/**
+ * Create popup content for a placed polyline
+ * @param {Object} sign - Sign object
+ * @param {number} polylineId - Leaflet polyline ID
+ * @returns {HTMLElement} Popup element with event listeners
+ */
+function createPolylinePopupElement(sign, polylineId) {
+    const placedPolyline = signState.placedSigns.find(s => s.id === polylineId);
+    if (!placedPolyline) return document.createElement('div');
+
+    const container = document.createElement('div');
+    container.className = 'polyline-popup';
+    container.style.minWidth = '200px';
+
+    const title = document.createElement('strong');
+    title.textContent = sign.name;
+    title.style.display = 'block';
+    title.style.marginBottom = '10px';
+    container.appendChild(title);
+
+    const info = document.createElement('p');
+    info.innerHTML = '<strong>Tips:</strong> Klikk på linje for å aktivere/deaktivere punkter.<br><strong>Dobbeltklikk</strong> for å åpne denne menyen.';
+    info.style.fontSize = '11px';
+    info.style.marginBottom = '10px';
+    info.style.color = '#666';
+    container.appendChild(info);
+
+    // Delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Slett linje';
+    deleteBtn.className = 'btn btn-danger';
+    deleteBtn.style.width = '100%';
+    deleteBtn.addEventListener('click', () => {
+        removePolyline(polylineId);
+    });
+    container.appendChild(deleteBtn);
+
+    return container;
+}
+
+/**
+ * Remove polyline from map
+ * @param {number} polylineId - Leaflet polyline ID
+ */
+function removePolyline(polylineId) {
+    const index = signState.placedSigns.findIndex(s => s.id === polylineId);
+    if (index === -1) return;
+
+    const placedPolyline = signState.placedSigns[index];
+
+    // Record deletion in history
+    addToHistory({
+        type: 'delete_polyline',
+        data: {
+            id: placedPolyline.id,
+            signId: placedPolyline.signId,
+            vertices: placedPolyline.vertices
+        }
+    });
+
+    // Remove from map
+    if (placedPolyline.polyline) {
+        getMap().removeLayer(placedPolyline.polyline);
+    }
+
+    // Remove from array
+    signState.placedSigns.splice(index, 1);
+
+    // Update UI
+    updateSignCount();
+
+    console.log('Polyline removed');
 }
 
 /**
@@ -461,6 +884,11 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
         return placePolygon(signId, latlng, vertices);
     }
 
+    // Check if this is a line sign
+    if (signId.includes('line')) {
+        return placePolyline(signId, latlng, vertices);
+    }
+
     // Snap to road if enabled
     const road = getSelectedRoad();
     let finalLatLng = latlng;
@@ -470,19 +898,52 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
     }
 
     // Create custom icon
-    const icon = L.icon({
-        iconUrl: sign.file,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-        popupAnchor: [0, -20]
-    });
+    // Both Markeringsskilt and trafikkskilt need explicit sizing for consistent positioning
+    const isMarkeringsskilt = sign.category === 'Markeringsskilt';
 
-    // Create marker
+    const iconOptions = {
+        iconUrl: sign.file,
+        popupAnchor: [0, -20],
+        className: 'traffic-sign-marker' // Add custom class for styling
+    };
+
+    if (isMarkeringsskilt) {
+        // Markeringsskilt - use natural SVG size (manually resized to ~32x32)
+        // Only set anchor to prevent position drift at different zoom levels
+        // Assumes SVGs are resized to approximately 32x32 pixels
+        iconOptions.iconAnchor = [16, 16]; // Center anchor for 32x32 - prevents zoom drift
+    } else {
+        // Trafikkskilt - programmatic size control (too many to resize manually)
+        iconOptions.iconSize = [40, 40];
+        iconOptions.iconAnchor = [20, 20]; // Center anchor
+    }
+
+    const icon = L.icon(iconOptions);
+
+    // Create marker with tooltip for better user feedback
     const marker = L.marker(finalLatLng, {
         icon: icon,
         draggable: true,
         rotationAngle: rotation,
         title: sign.name
+    });
+
+    // Add tooltip that shows on hover
+    marker.bindTooltip(sign.name, {
+        permanent: false,
+        direction: 'top',
+        offset: [0, -10],
+        opacity: 0.9,
+        className: 'sign-tooltip'
+    });
+
+    // Track old position for undo on drag start
+    let dragStartPosition = null;
+    marker.on('dragstart', () => {
+        const placedSign = signState.placedSigns.find(s => s.id === marker._leaflet_id);
+        if (placedSign) {
+            dragStartPosition = { lat: placedSign.position.lat, lng: placedSign.position.lng };
+        }
     });
 
     // Preserve rotation during drag
@@ -516,6 +977,21 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
         // Update stored position
         const placedSign = signState.placedSigns.find(s => s.id === marker._leaflet_id);
         if (placedSign) {
+            const oldPos = dragStartPosition;
+            const newPosObj = { lat: snappedPos.lat, lng: snappedPos.lng };
+
+            // Record move in history if position actually changed
+            if (oldPos && (oldPos.lat !== newPosObj.lat || oldPos.lng !== newPosObj.lng)) {
+                addToHistory({
+                    type: 'move_sign',
+                    data: {
+                        id: placedSign.id,
+                        oldPosition: oldPos,
+                        newPosition: newPosObj
+                    }
+                });
+            }
+
             placedSign.position = snappedPos;
 
             // Update text label position if it exists
@@ -592,6 +1068,18 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
 
     signState.placedSigns.push(placedSign);
 
+    // Record sign placement in history
+    addToHistory({
+        type: 'add_sign',
+        data: {
+            id: placedSign.id,
+            signId: placedSign.signId,
+            position: [placedSign.position.lat, placedSign.position.lng],
+            rotation: placedSign.rotation,
+            customText: placedSign.customText || ''
+        }
+    });
+
     // Update UI
     updateSignCount();
 
@@ -638,11 +1126,33 @@ function createSignPopupElement(sign, markerId) {
     rotationSlider.max = '360';
     rotationSlider.value = placedSign.rotation;
     rotationSlider.style.width = '100%';
+
+    // Track old rotation for history
+    let oldRotation = placedSign.rotation;
+
+    // Update display while dragging
     rotationSlider.addEventListener('input', (e) => {
         const angle = parseInt(e.target.value);
         rotationLabel.textContent = `Rotasjon: ${angle}°`;
         setSignRotation(markerId, angle);
     });
+
+    // Record history when user releases slider
+    rotationSlider.addEventListener('change', (e) => {
+        const newRotation = parseInt(e.target.value);
+        if (oldRotation !== newRotation) {
+            addToHistory({
+                type: 'rotate_sign',
+                data: {
+                    id: markerId,
+                    oldRotation: oldRotation,
+                    newRotation: newRotation
+                }
+            });
+            oldRotation = newRotation;
+        }
+    });
+
     rotationGroup.appendChild(rotationSlider);
 
     container.appendChild(rotationGroup);
@@ -678,6 +1188,18 @@ function createSignPopupElement(sign, markerId) {
     actionsDiv.style.display = 'flex';
     actionsDiv.style.gap = '5px';
     actionsDiv.style.marginTop = '10px';
+
+    // Create duplicate button
+    const duplicateBtn = document.createElement('button');
+    duplicateBtn.className = 'btn btn-secondary';
+    duplicateBtn.textContent = '⎘ Dupliser';
+    duplicateBtn.style.flex = '1';
+    duplicateBtn.style.padding = '5px';
+    duplicateBtn.style.fontSize = '12px';
+    duplicateBtn.addEventListener('click', () => {
+        duplicateSign(markerId);
+    });
+    actionsDiv.appendChild(duplicateBtn);
 
     // Create remove button
     const removeBtn = document.createElement('button');
@@ -811,6 +1333,156 @@ export function rotateSign(markerId) {
 }
 
 /**
+ * Duplicate a placed sign
+ * @param {number} markerId - Leaflet marker ID of the sign to duplicate
+ * @returns {Object|null} New placed sign object
+ */
+export function duplicateSign(markerId) {
+    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+
+    if (!placedSign) {
+        console.error(`Sign not found: ${markerId}`);
+        return null;
+    }
+
+    // Close the popup of the original sign
+    if (placedSign.marker && placedSign.marker.isPopupOpen()) {
+        placedSign.marker.closePopup();
+    }
+
+    // Calculate offset position (10 meters south)
+    const offsetLat = -0.00009; // ~10m south
+    const newLat = placedSign.position.lat + offsetLat;
+    const newLng = placedSign.position.lng;
+    const newPosition = L.latLng(newLat, newLng);
+
+    // Create new sign with same properties
+    const newSign = placeSign(
+        placedSign.signId,
+        newPosition,
+        placedSign.rotation // Preserve rotation!
+    );
+
+    // Copy custom text if it exists
+    if (newSign && placedSign.customText) {
+        setSignCustomText(newSign.id, placedSign.customText);
+    }
+
+    // Record duplicate action in history
+    if (newSign) {
+        addToHistory({
+            type: 'duplicate_sign',
+            data: {
+                newSignId: newSign.id,
+                signId: newSign.signId,
+                position: [newSign.position.lat, newSign.position.lng],
+                rotation: newSign.rotation,
+                customText: newSign.customText || ''
+            }
+        });
+    }
+
+    console.log(`Duplicated sign: ${placedSign.signId} with rotation ${placedSign.rotation}°`);
+    return newSign;
+}
+
+/**
+ * Internal function to remove sign without recording history
+ * @param {number} markerId - Leaflet marker ID
+ */
+function removeSignInternal(markerId) {
+    const index = signState.placedSigns.findIndex(s => s.id === markerId);
+    if (index === -1) return;
+
+    const placedSign = signState.placedSigns[index];
+
+    // Close popup if open
+    if (placedSign.marker && placedSign.marker.isPopupOpen()) {
+        placedSign.marker.closePopup();
+    }
+
+    // Remove marker from map
+    const map = getMap();
+    if (map && placedSign.marker) {
+        map.removeLayer(placedSign.marker);
+    }
+
+    // Remove text label if exists
+    if (placedSign.textLabel && map) {
+        map.removeLayer(placedSign.textLabel);
+    }
+
+    // Remove from array
+    signState.placedSigns.splice(index, 1);
+
+    // Update UI
+    updateSignCount();
+}
+
+/**
+ * Restore a sign from saved state
+ * @param {Object} signData - Saved sign data
+ */
+function restoreSign(signData) {
+    const latlng = L.latLng(signData.position[0], signData.position[1]);
+    const newSign = placeSign(signData.signId, latlng, signData.rotation || 0);
+
+    // Restore custom text if it exists
+    if (newSign && signData.customText) {
+        setSignCustomText(newSign.id, signData.customText);
+    }
+
+    // Update the ID to match original if provided
+    if (signData.id && newSign) {
+        const placedSign = signState.placedSigns.find(s => s.id === newSign.id);
+        if (placedSign) {
+            placedSign.id = signData.id;
+        }
+    }
+}
+
+/**
+ * Move a sign to a new position (internal, no history)
+ * @param {number} markerId - Leaflet marker ID
+ * @param {Object} position - New position {lat, lng}
+ */
+function moveSignInternal(markerId, position) {
+    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    if (!placedSign || !placedSign.marker) return;
+
+    const latlng = L.latLng(position.lat, position.lng);
+    placedSign.marker.setLatLng(latlng);
+    placedSign.position = latlng;
+
+    // Update text label position if exists
+    if (placedSign.textLabel) {
+        placedSign.textLabel.setLatLng(latlng);
+    }
+}
+
+/**
+ * Restore a polygon from saved state
+ * @param {Object} polygonData - Saved polygon data
+ */
+function restorePolygon(polygonData) {
+    const centerLat = polygonData.vertices.reduce((sum, v) => sum + v[0], 0) / polygonData.vertices.length;
+    const centerLng = polygonData.vertices.reduce((sum, v) => sum + v[1], 0) / polygonData.vertices.length;
+    const latlng = L.latLng(centerLat, centerLng);
+    placePolygon(polygonData.signId, latlng, polygonData.vertices);
+}
+
+/**
+ * Restore a polyline from saved state
+ * @param {Object} polylineData - Saved polyline data
+ */
+function restorePolyline(polylineData) {
+    const startLat = polylineData.vertices[0][0];
+    const startLng = polylineData.vertices[0][1];
+    const latlng = L.latLng(startLat, startLng);
+    placePolyline(polylineData.signId, latlng, polylineData.vertices);
+}
+
+/**
  * Remove a placed sign
  * @param {number} markerId - Leaflet marker ID
  */
@@ -823,6 +1495,18 @@ export function removeSign(markerId) {
     }
 
     const placedSign = signState.placedSigns[index];
+
+    // Record deletion in history before removing
+    addToHistory({
+        type: 'delete_sign',
+        data: {
+            id: placedSign.id,
+            signId: placedSign.signId,
+            position: [placedSign.position.lat, placedSign.position.lng],
+            rotation: placedSign.rotation,
+            customText: placedSign.customText || ''
+        }
+    });
 
     // Close popup if open
     if (placedSign.marker.isPopupOpen()) {
@@ -862,6 +1546,13 @@ export function getPlacedSigns() {
                 isPolygon: true,
                 vertices: s.vertices
             };
+        } else if (s.isPolyline) {
+            // Polyline data
+            return {
+                signId: s.signId,
+                isPolyline: true,
+                vertices: s.vertices
+            };
         } else {
             // Regular sign data
             return {
@@ -880,12 +1571,17 @@ export function getPlacedSigns() {
 export function clearAllSigns() {
     const map = getMap();
 
-    // Remove all markers, text labels, and polygons
+    // Remove all markers, text labels, polygons, and polylines
     signState.placedSigns.forEach(s => {
         if (s.isPolygon) {
             // Remove polygon
             if (map && s.polygon) {
                 map.removeLayer(s.polygon);
+            }
+        } else if (s.isPolyline) {
+            // Remove polyline
+            if (map && s.polyline) {
+                map.removeLayer(s.polyline);
             }
         } else {
             // Remove marker and text label
@@ -917,12 +1613,23 @@ export function restoreSigns(signs) {
         return;
     }
 
+    // Clear undo history and disable history tracking during restoration
+    signState.history = [];
+    signState.historyIndex = -1;
+    signState.isUndoRedoOperation = true;
+
     signs.forEach(signData => {
         if (signData.isPolygon) {
             // Restore polygon with vertices
             const centerLat = signData.vertices.reduce((sum, v) => sum + v[0], 0) / signData.vertices.length;
             const centerLng = signData.vertices.reduce((sum, v) => sum + v[1], 0) / signData.vertices.length;
             const latlng = L.latLng(centerLat, centerLng);
+            placeSign(signData.signId, latlng, 0, signData.vertices);
+        } else if (signData.isPolyline) {
+            // Restore polyline with vertices
+            const startLat = signData.vertices[0][0];
+            const startLng = signData.vertices[0][1];
+            const latlng = L.latLng(startLat, startLng);
             placeSign(signData.signId, latlng, 0, signData.vertices);
         } else {
             // Restore regular sign
@@ -936,7 +1643,10 @@ export function restoreSigns(signs) {
         }
     });
 
-    console.log(`Restored ${signs.length} signs`);
+    // Re-enable history tracking
+    signState.isUndoRedoOperation = false;
+
+    console.log(`Restored ${signs.length} signs (undo history cleared)`);
 }
 
 /**
@@ -947,6 +1657,38 @@ function updateSignCount() {
     if (countElement) {
         countElement.textContent = signState.placedSigns.length;
     }
+}
+
+/**
+ * Re-apply all sign rotations after zoom/move
+ * Leaflet overwrites transform during zoom, so we need to restore rotations
+ */
+function reapplyAllRotations() {
+    signState.placedSigns.forEach(placedSign => {
+        // Skip polygons and polylines
+        if (placedSign.isPolygon || placedSign.isPolyline) {
+            return;
+        }
+
+        // Re-apply rotation if it's not 0
+        if (placedSign.rotation !== 0 && placedSign.marker) {
+            const icon = placedSign.marker.getElement();
+            if (icon) {
+                // Get Leaflet's positioning transform
+                const currentTransform = icon.style.transform || '';
+                const translateMatch = currentTransform.match(/translate3d\([^)]+\)/);
+                const translatePart = translateMatch ? translateMatch[0] : '';
+
+                // Combine positioning with rotation
+                if (translatePart) {
+                    icon.style.transform = `${translatePart} rotate(${placedSign.rotation}deg)`;
+                } else {
+                    icon.style.transform = `rotate(${placedSign.rotation}deg)`;
+                }
+                icon.style.transformOrigin = 'center center';
+            }
+        }
+    });
 }
 
 /**
@@ -966,14 +1708,53 @@ export async function initSignManager() {
     // Render palette
     renderSignPalette(library);
 
+    // Setup search functionality
+    const searchInput = document.getElementById('signSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            renderSignPalette(library, query);
+        });
+        console.log('✓ Sign search initialized');
+    }
+
     // Setup drop zone
     setupMapDropZone();
+
+    // Setup zoom event handler to preserve rotations
+    const map = getMap();
+    if (map) {
+        map.on('zoomend moveend', () => {
+            // Re-apply rotations after zoom/pan completes
+            reapplyAllRotations();
+        });
+        console.log('✓ Zoom event handler initialized');
+    }
+
+    // Setup keyboard shortcuts for undo/redo
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+Z or Cmd+Z for undo
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+        }
+        // Ctrl+Shift+Z or Ctrl+Y or Cmd+Shift+Z for redo
+        else if (((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') ||
+                 ((e.ctrlKey || e.metaKey) && e.key === 'y')) {
+            e.preventDefault();
+            redo();
+        }
+    });
+    console.log('✓ Undo/redo keyboard shortcuts initialized (Ctrl+Z, Ctrl+Shift+Z)');
 
     // Make functions globally available (for compatibility)
     window.rotateSign = rotateSign;
     window.removeSign = removeSign;
+    window.duplicateSign = duplicateSign;
     window.setSignRotation = setSignRotation;
     window.setSignCustomText = setSignCustomText;
+    window.undo = undo;
+    window.redo = redo;
 
     console.log('Sign manager initialized');
 }
@@ -982,10 +1763,14 @@ export default {
     initSignManager,
     placeSign,
     removeSign,
+    duplicateSign,
     rotateSign,
     setSignRotation,
     setSignCustomText,
     getPlacedSigns,
     clearAllSigns,
-    restoreSigns
+    restoreSigns,
+    undo,
+    redo,
+    clearUndoHistory
 };

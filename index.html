@@ -102,28 +102,15 @@
             <h2>Trafikkskilt</h2>
             <p class="help-text">Dra skilt til kartet</p>
 
-            <!-- Speed Signs -->
-            <div class="sign-category">
-                <h3>Fartsgrenser</h3>
-                <div id="speedSigns" class="sign-grid" role="list">
-                    <!-- Speed signs will be loaded here -->
-                </div>
+            <!-- Sign Search -->
+            <div class="search-container" style="margin-bottom: 15px;">
+                <input type="text" id="signSearchInput" placeholder="Søk etter skilt (nr eller navn)..."
+                       aria-label="Søk etter skilt" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
 
-            <!-- Warning Signs -->
-            <div class="sign-category">
-                <h3>Varslingsskilt</h3>
-                <div id="warningSigns" class="sign-grid" role="list">
-                    <!-- Warning signs will be loaded here -->
-                </div>
-            </div>
-
-            <!-- Prohibition Signs -->
-            <div class="sign-category">
-                <h3>Forbudsskilt</h3>
-                <div id="prohibitionSigns" class="sign-grid" role="list">
-                    <!-- Prohibition signs will be loaded here -->
-                </div>
+            <!-- Sign Container (dynamically populated) -->
+            <div id="signContainer">
+                <!-- Signs will be loaded here by sign-manager.js -->
             </div>
 
             <div class="sign-count">

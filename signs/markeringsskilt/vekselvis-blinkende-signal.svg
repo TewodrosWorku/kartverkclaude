@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="12.73mm"
+   height="3.24mm"
+   viewBox="0 0 12.73 3.24"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="vekselvis-blinkende-signal.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.71891835"
+     inkscape:cx="88.327138"
+     inkscape:cy="-41.033867"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="3832"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-40.527495,-158.39583)">
+    <g
+       class="Group"
+       id="g152"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g150">
+        <g
+   id="id65">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4823"
+   y="14271"
+   width="315"
+   height="316"
+   id="rect149" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5137,14271 h -313 v 314 h 313 z"
+   id="path149" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g151">
+        <g
+   id="id66">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4819"
+   y="14267"
+   width="323"
+   height="324"
+   id="rect150" />
+
+         <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="8"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="m 5137,14271 h -313 v 314 h 313 z"
+   id="path150" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g155"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g153">
+        <g
+   id="id67">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4849"
+   y="14296"
+   width="263"
+   height="263"
+   id="rect152" />
+
+         <path
+   fill="#ffff00"
+   stroke="none"
+   d="m 4850,14426 v 0 c 0,-22 6,-44 17,-64 12,-20 28,-36 48,-48 20,-11 43,-17 65,-17 23,0 46,6 66,17 20,12 36,28 48,48 11,20 17,43 17,66 0,22 -6,45 -17,65 -12,20 -28,36 -48,48 -20,11 -43,17 -66,17 v 0 0 c -22,0 -45,-6 -65,-17 -20,-12 -36,-28 -48,-48 -11,-20 -17,-43 -17,-65 0,-1 0,-1 0,-2 z"
+   id="path152" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g154">
+        <g
+   id="id68">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4845"
+   y="14292"
+   width="271"
+   height="271"
+   id="rect153" />
+
+         <path
+   fill="none"
+   stroke="#ffffff"
+   stroke-width="8"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="m 4850,14426 v 0 c 0,-22 6,-44 17,-64 12,-20 28,-36 48,-48 20,-11 43,-17 65,-17 23,0 46,6 66,17 20,12 36,28 48,48 11,20 17,43 17,66 0,22 -6,45 -17,65 -12,20 -28,36 -48,48 -20,11 -43,17 -66,17 v 0 0 c -22,0 -45,-6 -65,-17 -20,-12 -36,-28 -48,-48 -11,-20 -17,-43 -17,-65 z"
+   id="path153" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g158"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g156">
+        <g
+   id="id69">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4888"
+   y="14427"
+   width="186"
+   height="133"
+   id="rect155" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5073,14520 -93,-93 -92,93 v 0 c 8,9 17,16 27,22 20,11 43,17 66,17 22,0 45,-6 65,-17 10,-6 19,-13 27,-22 z"
+   id="path155" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g157">
+        <g
+   id="id70">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4884"
+   y="14423"
+   width="194"
+   height="141"
+   id="rect156" />
+
+         <path
+   fill="none"
+   stroke="#ffffff"
+   stroke-width="8"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="m 5073,14520 -93,-93 -92,93 v 0 c 8,9 17,16 27,22 20,11 43,17 66,17 22,0 45,-6 65,-17 10,-6 19,-13 27,-22 z"
+   id="path156" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="com.sun.star.drawing.PolyLineShape"
+       id="g159"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   id="id71">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="4889"
+   y="14424"
+   width="184"
+   height="100"
+   id="rect158" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="8"
+   stroke-linejoin="miter"
+   d="m 4892,14520 89,-90 88,90"
+   id="path158" />
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g162"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g160">
+        <g
+   id="id72">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5774"
+   y="14271"
+   width="314"
+   height="316"
+   id="rect159" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5774,14585 h 313 v -314 h -313 z"
+   id="path159" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g161">
+        <g
+   id="id73">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5770"
+   y="14267"
+   width="322"
+   height="324"
+   id="rect160" />
+
+         <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="8"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="m 5774,14585 h 313 v -314 h -313 z"
+   id="path160" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g165"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g163">
+        <g
+   id="id74">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5800"
+   y="14296"
+   width="262"
+   height="263"
+   id="rect162" />
+
+         <path
+   fill="#ffff00"
+   stroke="none"
+   d="m 6061,14427 v 0 c 0,23 -6,46 -17,66 -12,20 -28,36 -48,48 -20,11 -43,17 -65,17 -23,0 -46,-6 -66,-17 -20,-12 -36,-28 -48,-48 -11,-20 -17,-43 -17,-66 0,-22 6,-45 17,-65 12,-20 28,-36 48,-48 20,-11 43,-17 66,-17 v 0 c 22,0 45,6 65,17 20,12 36,28 48,48 11,20 17,43 17,65 z"
+   id="path162" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g164">
+        <g
+   id="id75">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5796"
+   y="14292"
+   width="270"
+   height="271"
+   id="rect163" />
+
+         <path
+   fill="none"
+   stroke="#ffffff"
+   stroke-width="8"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="m 6061,14427 v 0 c 0,23 -6,46 -17,66 -12,20 -28,36 -48,48 -20,11 -43,17 -65,17 -23,0 -46,-6 -66,-17 -20,-12 -36,-28 -48,-48 -11,-20 -17,-43 -17,-66 0,-22 6,-45 17,-65 12,-20 28,-36 48,-48 20,-11 43,-17 66,-17 v 0 c 22,0 45,6 65,17 20,12 36,28 48,48 11,20 17,43 17,65 z"
+   id="path163" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g168"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g166">
+        <g
+   id="id76">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5838"
+   y="14297"
+   width="186"
+   height="133"
+   id="rect165" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5838,14336 92,93 93,-93 v 0 c -8,-9 -17,-16 -27,-22 -20,-11 -43,-17 -66,-17 -22,0 -45,6 -65,17 -10,6 -19,13 -27,22 z"
+   id="path165" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.ClosedBezierShape"
+   id="g167">
+        <g
+   id="id77">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5834"
+   y="14293"
+   width="194"
+   height="141"
+   id="rect166" />
+
+         <path
+   fill="none"
+   stroke="#ffffff"
+   stroke-width="8"
+   stroke-linejoin="round"
+   stroke-linecap="round"
+   d="m 5838,14336 92,93 93,-93 v 0 c -8,-9 -17,-16 -27,-22 -20,-11 -43,-17 -66,-17 -22,0 -45,6 -65,17 -10,6 -19,13 -27,22 z"
+   id="path166" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="com.sun.star.drawing.PolyLineShape"
+       id="g169"
+       transform="matrix(0.01,0,0,0.01,-7.662505,15.725832)">
+       <g
+   id="id78">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5839"
+   y="14333"
+   width="184"
+   height="100"
+   id="rect168" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="8"
+   stroke-linejoin="miter"
+   d="m 6019,14336 -88,90 -89,-90"
+   id="path168" />
+
+       </g>
+
+      </g>
+  </g>
+</svg>

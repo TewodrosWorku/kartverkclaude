@@ -10,7 +10,10 @@
       "Bash(node extract-symbols.js:*)",
       "Bash(pkill:*)",
       "Bash(ls:*)",
-      "Bash(node --check:*)"
+      "Bash(node --check:*)",
+      "Bash(node generate-sign-index.js:*)",
+      "Bash(node generate-sign-index.cjs:*)",
+      "Bash(cat:*)"
     ]
   }
 }

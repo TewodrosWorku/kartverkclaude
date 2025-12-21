@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="2.98mm"
+   height="2.1900001mm"
+   viewBox="0 0 2.9800001 2.1900001"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   sodipodi:docname="hindermarkeringtosidig_cleaned.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2"
+     inkscape:cx="295.25"
+     inkscape:cy="86.75"
+     inkscape:window-width="1904"
+     inkscape:window-height="993"
+     inkscape:window-x="3892"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-17.197307,-192.31971)">
+    <g
+       class="com.sun.star.drawing.LineShape"
+       id="g126"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   id="id48">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5326"
+   y="9341"
+   width="298"
+   height="77"
+   id="rect125" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="76"
+   stroke-linejoin="miter"
+   d="M 5623,9379 H 5326"
+   id="path125" />
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g129"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g127">
+        <g
+   id="id49">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5424"
+   y="9399"
+   width="102"
+   height="42"
+   id="rect126" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5424,9440 v -41 h 101 v 41 z"
+   id="path126" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g128">
+        <g
+   id="id50">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5411"
+   y="9386"
+   width="128"
+   height="68"
+   id="rect127" />
+
+         <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="miter"
+   d="m 5424,9440 v -41 h 101 v 41 z"
+   id="path127" />
+
+        </g>
+
+       </g>
+
+      </g>
+    <g
+       class="com.sun.star.drawing.LineShape"
+       id="g130"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   id="id51">
+        <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5326"
+   y="9483"
+   width="298"
+   height="77"
+   id="rect129" />
+
+        <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="76"
+   stroke-linejoin="miter"
+   d="M 5623,9521 H 5326"
+   id="path129" />
+
+       </g>
+
+      </g>
+    <g
+       class="Group"
+       id="g133"
+       transform="matrix(0.01,0,0,0.01,-36.062693,98.909713)">
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g131">
+        <g
+   id="id52">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5424"
+   y="9461"
+   width="102"
+   height="42"
+   id="rect130" />
+
+         <path
+   fill="#000000"
+   stroke="none"
+   d="m 5424,9461 v 41 h 101 v -41 z"
+   id="path130" />
+
+        </g>
+
+       </g>
+
+       <g
+   class="com.sun.star.drawing.PolyPolygonShape"
+   id="g132">
+        <g
+   id="id53">
+         <rect
+   class="BoundingBox"
+   stroke="none"
+   fill="none"
+   x="5411"
+   y="9448"
+   width="128"
+   height="68"
+   id="rect131" />
+
+         <path
+   fill="none"
+   stroke="#000000"
+   stroke-width="25"
+   stroke-linejoin="miter"
+   d="m 5424,9461 v 41 h 101 v -41 z"
+   id="path131" />
+
+        </g>
+
+       </g>
+
+      </g>
+  </g>
+</svg>

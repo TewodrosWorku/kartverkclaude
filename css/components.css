@@ -244,7 +244,7 @@ label {
 .sign-item {
     width: 60px;
     height: 60px;
-    border: 2px solid var(--color-border);
+    border: none;
     border-radius: var(--radius-sm);
     padding: var(--spacing-xs);
     cursor: grab;
@@ -253,13 +253,13 @@ label {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-white);
+    background-color: transparent;
 }
 
 .sign-item:hover {
-    border-color: var(--color-primary);
     box-shadow: var(--shadow-sm);
     transform: scale(1.05);
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
 .sign-item:active {
@@ -374,6 +374,58 @@ label {
     /* Will be styled via Leaflet CircleMarker options */
 }
 
+/* Placed Signs on Map - Enhanced Clickability */
+.traffic-sign-marker {
+    cursor: pointer !important;
+    transition: all 150ms ease;
+    /* Increase clickable area with invisible border */
+    box-shadow: 0 0 0 15px transparent;
+}
+
+.traffic-sign-marker:hover {
+    /* Highlight effect on hover - blue glow */
+    filter: drop-shadow(0 0 8px rgba(0, 102, 204, 0.8)) brightness(1.15);
+    z-index: 1000 !important;
+    transform: scale(1.1);
+}
+
+/* Active/clicked state */
+.traffic-sign-marker:active {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 12px rgba(0, 102, 204, 1));
+}
+
+/* Make draggable markers show move cursor */
+.leaflet-marker-draggable {
+    cursor: move !important;
+}
+
+.leaflet-marker-draggable:hover {
+    /* Green glow for draggable signs */
+    filter: drop-shadow(0 0 10px rgba(0, 204, 102, 0.8)) brightness(1.15);
+}
+
+/* Ensure smooth transitions */
+.leaflet-marker-icon img {
+    transition: all 150ms ease;
+}
+
+/* Sign Tooltips */
+.sign-tooltip {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+    border: none !important;
+    border-radius: 4px !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    padding: 6px 10px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.sign-tooltip::before {
+    border-top-color: rgba(0, 0, 0, 0.85) !important;
+}
+
 /* Responsive - Mobile */
 @media (max-width: 768px) {
     .sidebar {
@@ -406,6 +458,18 @@ label {
         bottom: var(--spacing-sm);
         font-size: 12px;
         padding: 6px 12px;
+    }
+
+    /* Larger touch targets for mobile */
+    .traffic-sign-marker {
+        /* Even larger clickable area on mobile */
+        box-shadow: 0 0 0 20px transparent !important;
+    }
+
+    /* Increase sign size on mobile for easier interaction */
+    .traffic-sign-marker img {
+        width: 60px !important;
+        height: 60px !important;
     }
 }
 
