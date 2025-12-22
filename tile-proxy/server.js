@@ -110,13 +110,18 @@ app.get('/tiles/:z/:y/:x.png', async (req, res) => {
     }
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`===========================================`);
-    console.log(`Kartverket Tile Proxy Server`);
-    console.log(`===========================================`);
-    console.log(`Port: ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/health`);
-    console.log(`Tile endpoint: http://localhost:${PORT}/tiles/{z}/{y}/{x}.png`);
-    console.log(`===========================================`);
-});
+// Start server (for local development)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`===========================================`);
+        console.log(`Kartverket Tile Proxy Server`);
+        console.log(`===========================================`);
+        console.log(`Port: ${PORT}`);
+        console.log(`Health check: http://localhost:${PORT}/health`);
+        console.log(`Tile endpoint: http://localhost:${PORT}/tiles/{z}/{y}/{x}.png`);
+        console.log(`===========================================`);
+    });
+}
+
+// Export for Vercel serverless deployment
+module.exports = app;
