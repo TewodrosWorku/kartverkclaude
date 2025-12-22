@@ -12,6 +12,8 @@ import { hideForExport as hideMarkers, showAfterExport as showMarkers } from './
  * @param {string} filename - Optional custom filename
  */
 export async function exportMapImage(filename = null) {
+    let inlinedSigns = null;
+
     try {
         // Generate filename
         const projectName = filename || 'avplan';
@@ -23,6 +25,9 @@ export async function exportMapImage(filename = null) {
 
         // Prepare map for export
         prepareMapForExport();
+
+        // Inline SVG signs to avoid CORS issues
+        inlinedSigns = await inlineSignSVGs();
 
         // Create and add scale bar
         const scaleBar = createScaleBar();
@@ -50,6 +55,9 @@ export async function exportMapImage(filename = null) {
         // Restore map
         restoreMapAfterExport();
 
+        // Restore sign images
+        restoreSignImages(inlinedSigns);
+
         // Remove scale bar
         if (scaleBar && scaleBar.parentNode) {
             scaleBar.parentNode.removeChild(scaleBar);
@@ -72,6 +80,11 @@ export async function exportMapImage(filename = null) {
 
         // Ensure map is restored even on error
         restoreMapAfterExport();
+
+        // Restore sign images if they were inlined
+        if (inlinedSigns) {
+            restoreSignImages(inlinedSigns);
+        }
     }
 }
 
@@ -271,6 +284,112 @@ function roundToNiceNumber(value) {
 }
 
 /**
+ * Inline all SVG sign images to avoid CORS taint issues during export
+ * @returns {Promise<Array>} Array of replaced elements for restoration
+ */
+async function inlineSignSVGs() {
+    const inlinedSigns = [];
+
+    try {
+        // Find all traffic sign images in the map
+        const signImages = document.querySelectorAll('.leaflet-marker-icon img');
+
+        console.log(`Found ${signImages.length} sign images to inline`);
+
+        for (const img of signImages) {
+            const src = img.getAttribute('src');
+            if (!src || !src.includes('.svg')) {
+                continue; // Skip non-SVG images
+            }
+
+            try {
+                // Fetch SVG content
+                const response = await fetch(src);
+                if (!response.ok) {
+                    console.warn(`Failed to fetch SVG: ${src}`);
+                    continue;
+                }
+
+                const svgText = await response.text();
+
+                // Parse SVG
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                const svgElement = svgDoc.documentElement;
+
+                if (svgElement.tagName !== 'svg') {
+                    console.warn(`Invalid SVG content: ${src}`);
+                    continue;
+                }
+
+                // Copy img styles to SVG
+                const computedStyle = window.getComputedStyle(img);
+                svgElement.style.width = computedStyle.width;
+                svgElement.style.height = computedStyle.height;
+                svgElement.style.transform = computedStyle.transform;
+                svgElement.style.transformOrigin = computedStyle.transformOrigin;
+                svgElement.style.position = 'absolute';
+                svgElement.style.pointerEvents = 'none';
+
+                // Store original for restoration
+                const parent = img.parentElement;
+                const nextSibling = img.nextSibling;
+
+                inlinedSigns.push({
+                    originalImg: img,
+                    inlinedSvg: svgElement,
+                    parent: parent,
+                    nextSibling: nextSibling
+                });
+
+                // Replace img with inline SVG
+                parent.replaceChild(svgElement, img);
+
+            } catch (err) {
+                console.warn(`Error inlining SVG ${src}:`, err);
+            }
+        }
+
+        console.log(`Successfully inlined ${inlinedSigns.length} sign SVGs`);
+
+    } catch (error) {
+        console.error('Error during SVG inlining:', error);
+    }
+
+    return inlinedSigns;
+}
+
+/**
+ * Restore original img elements after export
+ * @param {Array} inlinedSigns - Array from inlineSignSVGs
+ */
+function restoreSignImages(inlinedSigns) {
+    if (!inlinedSigns || inlinedSigns.length === 0) {
+        return;
+    }
+
+    try {
+        for (const item of inlinedSigns) {
+            const { originalImg, inlinedSvg, parent, nextSibling } = item;
+
+            if (parent && inlinedSvg && inlinedSvg.parentNode === parent) {
+                if (nextSibling) {
+                    parent.insertBefore(originalImg, nextSibling);
+                } else {
+                    parent.appendChild(originalImg);
+                }
+                parent.removeChild(inlinedSvg);
+            }
+        }
+
+        console.log(`Restored ${inlinedSigns.length} sign images`);
+
+    } catch (error) {
+        console.error('Error restoring sign images:', error);
+    }
+}
+
+/**
  * Capture map as canvas using html2canvas
  * @returns {Promise<HTMLCanvasElement>} Canvas element
  */
@@ -292,12 +411,9 @@ async function captureMapImage() {
     console.log('html2canvas is available, capturing map...');
 
     try {
-        // Using allowTaint: true because Kartverket tiles don't have CORS headers
-        // This allows rendering but we need to use toDataURL() instead of toBlob()
+        // SVG signs are now inlined, so canvas won't be tainted
         const canvas = await html2canvas(mapElement, {
             scale: 2, // 2x resolution for print quality
-            allowTaint: true, // Allow tainted canvas (Kartverket tiles have no CORS)
-            useCORS: false, // Don't try to use CORS
             backgroundColor: '#ffffff',
             logging: false, // Disable logging to reduce console noise
             windowWidth: mapElement.offsetWidth,
