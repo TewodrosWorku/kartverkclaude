@@ -292,13 +292,14 @@ async function captureMapImage() {
     console.log('html2canvas is available, capturing map...');
 
     try {
-        // Using useCORS: true because we're using a tile proxy with proper CORS headers
-        // This prevents canvas tainting and allows export operations
+        // Using allowTaint: true because Kartverket tiles don't have CORS headers
+        // This allows rendering but we need to use toDataURL() instead of toBlob()
         const canvas = await html2canvas(mapElement, {
             scale: 2, // 2x resolution for print quality
-            useCORS: true, // Use CORS-enabled tiles from proxy server
+            allowTaint: true, // Allow tainted canvas (Kartverket tiles have no CORS)
+            useCORS: false, // Don't try to use CORS
             backgroundColor: '#ffffff',
-            logging: true, // Enable logging to see what html2canvas is doing
+            logging: false, // Disable logging to reduce console noise
             windowWidth: mapElement.offsetWidth,
             windowHeight: mapElement.offsetHeight,
             ignoreElements: (element) => {
@@ -309,7 +310,6 @@ async function captureMapImage() {
 
         console.log('Map captured successfully');
         console.log('Canvas details - Width:', canvas.width, 'Height:', canvas.height);
-        console.log('Canvas is tainted?', canvas.toDataURL ? 'No (or allowed)' : 'Unknown');
         return canvas;
 
     } catch (error) {
@@ -327,51 +327,71 @@ async function captureMapImage() {
 function downloadCanvas(canvas, filename) {
     return new Promise((resolve, reject) => {
         try {
-            console.log('Creating blob from canvas...');
+            console.log('Creating image from canvas...');
             console.log('Canvas size:', canvas.width, 'x', canvas.height);
 
-            // Check if toBlob is supported
-            if (!canvas.toBlob) {
-                console.error('toBlob not supported in this browser');
-                reject(new Error('Browser does not support canvas.toBlob()'));
-                return;
+            // Try toBlob first (preferred method)
+            if (canvas.toBlob) {
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        // Success with toBlob
+                        console.log('Blob created successfully:', blob.size, 'bytes');
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        setTimeout(() => URL.revokeObjectURL(url), 100);
+                        console.log(`Downloaded: ${filename}`);
+                        resolve();
+                    } else {
+                        // toBlob failed, fallback to toDataURL
+                        console.log('toBlob failed (tainted canvas), using toDataURL fallback...');
+                        downloadViaDataURL(canvas, filename);
+                        resolve();
+                    }
+                }, 'image/png');
+            } else {
+                // Browser doesn't support toBlob, use toDataURL
+                console.log('toBlob not supported, using toDataURL...');
+                downloadViaDataURL(canvas, filename);
+                resolve();
             }
 
-            // Use toBlob to export the canvas
-            // This works with CORS-enabled tiles (not tainted canvas)
-            canvas.toBlob((blob) => {
-                if (!blob) {
-                    console.error('Failed to create blob from canvas');
-                    reject(new Error('Failed to create blob - ensure tile proxy server is configured'));
-                    return;
-                }
-
-                console.log('Blob created successfully:', blob.size, 'bytes');
-
-                // Create object URL from blob
-                const url = URL.createObjectURL(blob);
-
-                // Create temporary link and trigger download
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                // Clean up object URL
-                setTimeout(() => URL.revokeObjectURL(url), 100);
-
-                console.log(`Downloaded: ${filename}`);
-                resolve();
-            }, 'image/png');
-
         } catch (error) {
-            console.error('Error downloading canvas:', error);
-            reject(error);
+            // If toBlob throws error (tainted canvas), fallback to toDataURL
+            console.log('toBlob error (tainted canvas), using toDataURL fallback...');
+            try {
+                downloadViaDataURL(canvas, filename);
+                resolve();
+            } catch (fallbackError) {
+                console.error('All export methods failed:', fallbackError);
+                reject(fallbackError);
+            }
         }
     });
+}
+
+/**
+ * Fallback download method using toDataURL
+ * Works with tainted canvases (no CORS)
+ */
+function downloadViaDataURL(canvas, filename) {
+    try {
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log(`Downloaded via toDataURL: ${filename}`);
+    } catch (error) {
+        console.error('toDataURL also failed:', error);
+        throw new Error('Cannot export canvas - both toBlob and toDataURL failed');
+    }
 }
 
 /**
