@@ -13,7 +13,9 @@
       "Bash(node --check:*)",
       "Bash(node generate-sign-index.js:*)",
       "Bash(node generate-sign-index.cjs:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }
