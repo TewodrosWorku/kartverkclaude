@@ -24,8 +24,8 @@ const TILE_SERVER_CORS_PROXY = 'https://corsproxy.io/?' + encodeURIComponent('ht
 const TILE_SERVER_HETZNER = 'http://46.62.141.169:8080/tiles/{z}/{y}/{x}.png';
 
 // Active configuration
-// Using CORS proxy to enable both display and export
-export const TILE_SERVER_URL = TILE_SERVER_CORS_PROXY;
+// Using direct tiles for now (export won't work until CORS proxy is properly set up)
+export const TILE_SERVER_URL = TILE_SERVER_DIRECT;
 
 /**
  * Map configuration
