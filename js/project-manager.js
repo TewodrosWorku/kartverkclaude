@@ -13,7 +13,7 @@ import { updateDistanceMarkers, clearDistanceMarkers } from './distance-markers.
 export const projectState = {
     currentProject: null,
     settings: {
-        snapToRoad: true,
+        snapToRoad: false,
         showDistanceMarkers: true
     }
 };

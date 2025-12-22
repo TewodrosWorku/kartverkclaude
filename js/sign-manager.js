@@ -21,7 +21,7 @@ const CORSIcon = L.Icon.extend({
 const signState = {
     library: null,
     placedSigns: [],
-    snapEnabled: true,
+    snapEnabled: false,
     // Undo/Redo history
     history: [],
     historyIndex: -1,

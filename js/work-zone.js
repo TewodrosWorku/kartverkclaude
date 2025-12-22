@@ -10,7 +10,7 @@ import { getMap, getSelectedRoad, mapState as mapManagerState } from './map-mana
 export const workZoneState = {
     startMarker: null,
     endMarker: null,
-    snapEnabled: true,
+    snapEnabled: false,
     mode: null // 'setStart', 'setEnd', or null
 };
 
