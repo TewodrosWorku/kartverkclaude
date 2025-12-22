@@ -289,12 +289,13 @@ function roundToNiceNumber(value) {
  */
 async function inlineSignSVGs() {
     const inlinedSigns = [];
+    const problemSVGs = [];
 
     try {
         // Find all traffic sign images in the map
         const signImages = document.querySelectorAll('.leaflet-marker-icon img');
 
-        console.log(`Found ${signImages.length} sign images to inline`);
+        console.log(`🔍 Found ${signImages.length} sign images to inline`);
 
         for (const img of signImages) {
             const src = img.getAttribute('src');
@@ -306,7 +307,8 @@ async function inlineSignSVGs() {
                 // Fetch SVG content
                 const response = await fetch(src);
                 if (!response.ok) {
-                    console.warn(`Failed to fetch SVG: ${src}`);
+                    console.warn(`❌ Failed to fetch SVG: ${src}`);
+                    problemSVGs.push({ file: src, reason: 'fetch_failed' });
                     continue;
                 }
 
@@ -317,9 +319,33 @@ async function inlineSignSVGs() {
                 const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
                 const svgElement = svgDoc.documentElement;
 
-                if (svgElement.tagName !== 'svg') {
-                    console.warn(`Invalid SVG content: ${src}`);
+                // Check for parser errors
+                const parserError = svgDoc.querySelector('parsererror');
+                if (parserError) {
+                    console.warn(`❌ XML parse error in ${src}:`, parserError.textContent);
+                    problemSVGs.push({ file: src, reason: 'parse_error', detail: parserError.textContent });
                     continue;
+                }
+
+                if (svgElement.tagName !== 'svg') {
+                    console.warn(`❌ Invalid SVG content (not svg tag): ${src}`);
+                    problemSVGs.push({ file: src, reason: 'invalid_root_tag', tag: svgElement.tagName });
+                    continue;
+                }
+
+                // Check for embedded images (these can taint canvas!)
+                const embeddedImages = svgElement.querySelectorAll('image');
+                if (embeddedImages.length > 0) {
+                    console.warn(`⚠️ SVG contains ${embeddedImages.length} embedded image(s): ${src}`);
+                    problemSVGs.push({ file: src, reason: 'embedded_images', count: embeddedImages.length });
+                    // Continue anyway - might work
+                }
+
+                // Check for external references
+                const hasXlinkHref = svgText.includes('xlink:href="http') || svgText.includes('href="http');
+                if (hasXlinkHref) {
+                    console.warn(`⚠️ SVG contains external references: ${src}`);
+                    problemSVGs.push({ file: src, reason: 'external_references' });
                 }
 
                 // Copy img styles to SVG
@@ -339,18 +365,27 @@ async function inlineSignSVGs() {
                     originalImg: img,
                     inlinedSvg: svgElement,
                     parent: parent,
-                    nextSibling: nextSibling
+                    nextSibling: nextSibling,
+                    src: src
                 });
 
                 // Replace img with inline SVG
                 parent.replaceChild(svgElement, img);
 
+                console.log(`✅ Inlined: ${src}`);
+
             } catch (err) {
-                console.warn(`Error inlining SVG ${src}:`, err);
+                console.error(`❌ Error inlining SVG ${src}:`, err);
+                problemSVGs.push({ file: src, reason: 'exception', error: err.message });
             }
         }
 
-        console.log(`Successfully inlined ${inlinedSigns.length} sign SVGs`);
+        console.log(`✅ Successfully inlined ${inlinedSigns.length} sign SVGs`);
+
+        if (problemSVGs.length > 0) {
+            console.warn(`⚠️ Found ${problemSVGs.length} problematic SVG(s):`);
+            console.table(problemSVGs);
+        }
 
     } catch (error) {
         console.error('Error during SVG inlining:', error);
