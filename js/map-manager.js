@@ -5,6 +5,7 @@
  */
 
 import { findNearestRoad, getRoadDetails, getSpeedLimit, getADT, formatRoadReference, getRoadInfo, parseWKTToGeoJSON } from './nvdb-api.js';
+import { TILE_SERVER_URL, MAP_CONFIG } from './config.js';
 
 // Global map state
 export const mapState = {
@@ -35,11 +36,13 @@ export function initializeMap() {
         editable: true
     });
 
-    // Add Kartverket tile layer
-    L.tileLayer('https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png', {
-        attribution: '© <a href="https://www.kartverket.no">Kartverket</a>',
+    // Add Kartverket tile layer (configured in config.js)
+    // IMPORTANT: Use tile proxy server for export functionality to work
+    L.tileLayer(TILE_SERVER_URL, {
+        attribution: MAP_CONFIG.attribution,
         maxZoom: 21,  // Increased for better detail
-        maxNativeZoom: 18  // Tiles only go to zoom 18, but allow upscaling
+        maxNativeZoom: 18,  // Tiles only go to zoom 18, but allow upscaling
+        crossOrigin: 'anonymous'  // Enable CORS when using proxy server
     }).addTo(map);
 
     // Verify editTools are available

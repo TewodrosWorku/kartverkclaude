@@ -32,14 +32,20 @@ export async function exportMapImage(filename = null) {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Capture map
+        console.log('Starting map capture...');
         const canvas = await captureMapImage();
 
         if (!canvas) {
+            console.error('Canvas is null - html2canvas failed');
             throw new Error('Failed to capture map image');
         }
 
+        console.log('Canvas created successfully:', canvas.width, 'x', canvas.height);
+
         // Download image
-        downloadCanvas(canvas, finalFilename);
+        console.log('Starting download...');
+        await downloadCanvas(canvas, finalFilename);
+        console.log('Download completed');
 
         // Restore map
         restoreMapAfterExport();
@@ -94,6 +100,24 @@ function prepareMapForExport() {
     // Hide distance markers (make transparent, don't remove)
     hideMarkers();
 
+    // Hide road layer (blue line) during export
+    const map = getMap();
+    if (map && map.eachLayer) {
+        map.eachLayer(layer => {
+            // Hide road polyline layers (blue line showing selected road)
+            if (layer instanceof L.GeoJSON || layer instanceof L.Polyline) {
+                if (layer.options && layer.options.color === '#0066cc') {
+                    layer.setStyle({ opacity: 0, fillOpacity: 0 });
+                }
+            }
+            // Also hide distance labels on the road
+            if (layer instanceof L.Marker && layer.options.icon && layer.options.icon.options.className === 'distance-label') {
+                const icon = layer.getElement();
+                if (icon) icon.style.display = 'none';
+            }
+        });
+    }
+
     console.log('Map prepared for export');
 }
 
@@ -121,6 +145,24 @@ function restoreMapAfterExport() {
 
     // Show distance markers
     showMarkers();
+
+    // Restore road layer (blue line) visibility
+    const map = getMap();
+    if (map && map.eachLayer) {
+        map.eachLayer(layer => {
+            // Restore road polyline layers
+            if (layer instanceof L.GeoJSON || layer instanceof L.Polyline) {
+                if (layer.options && layer.options.color === '#0066cc') {
+                    layer.setStyle({ opacity: 0.7, fillOpacity: 0.7 });
+                }
+            }
+            // Restore distance labels on the road
+            if (layer instanceof L.Marker && layer.options.icon && layer.options.icon.options.className === 'distance-label') {
+                const icon = layer.getElement();
+                if (icon) icon.style.display = '';
+            }
+        });
+    }
 
     console.log('Map restored after export');
 }
@@ -240,12 +282,23 @@ async function captureMapImage() {
         return null;
     }
 
+    // Check if html2canvas is loaded
+    if (typeof html2canvas === 'undefined') {
+        console.error('html2canvas library not loaded!');
+        alert('html2canvas bibliotek ikke lastet. Sjekk nettverksforbindelsen.');
+        return null;
+    }
+
+    console.log('html2canvas is available, capturing map...');
+
     try {
+        // Using useCORS: true because we're using a tile proxy with proper CORS headers
+        // This prevents canvas tainting and allows export operations
         const canvas = await html2canvas(mapElement, {
             scale: 2, // 2x resolution for print quality
-            useCORS: true, // Allow external images
+            useCORS: true, // Use CORS-enabled tiles from proxy server
             backgroundColor: '#ffffff',
-            logging: false,
+            logging: true, // Enable logging to see what html2canvas is doing
             windowWidth: mapElement.offsetWidth,
             windowHeight: mapElement.offsetHeight,
             ignoreElements: (element) => {
@@ -255,6 +308,8 @@ async function captureMapImage() {
         });
 
         console.log('Map captured successfully');
+        console.log('Canvas details - Width:', canvas.width, 'Height:', canvas.height);
+        console.log('Canvas is tainted?', canvas.toDataURL ? 'No (or allowed)' : 'Unknown');
         return canvas;
 
     } catch (error) {
@@ -265,30 +320,58 @@ async function captureMapImage() {
 
 /**
  * Download canvas as PNG file
+ * Uses toBlob() instead of toDataURL() to avoid CORS tainted canvas issues
  * @param {HTMLCanvasElement} canvas - Canvas to download
  * @param {string} filename - Filename for download
  */
 function downloadCanvas(canvas, filename) {
-    try {
-        // Convert to data URL
-        const dataUrl = canvas.toDataURL('image/png');
+    return new Promise((resolve, reject) => {
+        try {
+            console.log('Creating blob from canvas...');
+            console.log('Canvas size:', canvas.width, 'x', canvas.height);
 
-        // Create temporary link
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = filename;
+            // Check if toBlob is supported
+            if (!canvas.toBlob) {
+                console.error('toBlob not supported in this browser');
+                reject(new Error('Browser does not support canvas.toBlob()'));
+                return;
+            }
 
-        // Trigger download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            // Use toBlob to export the canvas
+            // This works with CORS-enabled tiles (not tainted canvas)
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    console.error('Failed to create blob from canvas');
+                    reject(new Error('Failed to create blob - ensure tile proxy server is configured'));
+                    return;
+                }
 
-        console.log(`Downloaded: ${filename}`);
+                console.log('Blob created successfully:', blob.size, 'bytes');
 
-    } catch (error) {
-        console.error('Error downloading canvas:', error);
-        throw error;
-    }
+                // Create object URL from blob
+                const url = URL.createObjectURL(blob);
+
+                // Create temporary link and trigger download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Clean up object URL
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+
+                console.log(`Downloaded: ${filename}`);
+                resolve();
+            }, 'image/png');
+
+        } catch (error) {
+            console.error('Error downloading canvas:', error);
+            reject(error);
+        }
+    });
 }
 
 /**

@@ -7,6 +7,16 @@
 import { getMap, getSelectedRoad } from './map-manager.js';
 import { snapToRoad } from './work-zone.js';
 
+// Custom Icon class that sets crossOrigin for canvas export
+const CORSIcon = L.Icon.extend({
+    _setIconStyles: function (img, name) {
+        // Set crossOrigin BEFORE calling parent (before image loads)
+        img.crossOrigin = 'anonymous';
+        // Call parent method to set other styles
+        L.Icon.prototype._setIconStyles.call(this, img, name);
+    }
+});
+
 // Sign state
 const signState = {
     library: null,
@@ -918,7 +928,7 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
         iconOptions.iconAnchor = [15, 15]; // Center anchor
     }
 
-    const icon = L.icon(iconOptions);
+    const icon = new CORSIcon(iconOptions);
 
     // Create marker with tooltip for better user feedback
     const marker = L.marker(finalLatLng, {

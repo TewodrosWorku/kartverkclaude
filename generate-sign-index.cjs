@@ -43,6 +43,17 @@ function scanTrafikkskilt() {
         return signs;
     }
 
+    // Check for transparent_background subfolder first
+    const transparentBgPath = path.join(TRAFIKKSKILT_DIR, 'transparent_background');
+    if (fs.existsSync(transparentBgPath)) {
+        const transparentFiles = fs.readdirSync(transparentBgPath, { withFileTypes: true })
+            .filter(dirent => dirent.isFile() && dirent.name.endsWith('.svg'))
+            .map(dirent => `trafikkskilt/transparent_background/${dirent.name}`);
+
+        signs.push(...transparentFiles);
+        console.log(`Found ${transparentFiles.length} signs in transparent_background/`);
+    }
+
     // Read all folders in trafikkskilt/
     const folders = fs.readdirSync(TRAFIKKSKILT_DIR, { withFileTypes: true })
         .filter(dirent => dirent.isDirectory())
@@ -51,6 +62,11 @@ function scanTrafikkskilt() {
     console.log(`Found ${folders.length} sign folders in trafikkskilt/`);
 
     for (const folder of folders) {
+        // Skip transparent_background as we already processed it
+        if (folder === 'transparent_background') {
+            continue;
+        }
+
         const folderPath = path.join(TRAFIKKSKILT_DIR, folder);
 
         // Extract sign code from folder name
