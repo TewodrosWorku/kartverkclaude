@@ -21,8 +21,9 @@ const TILE_SERVER_DIRECT = 'https://cache.kartverket.no/v1/wmts/1.0.0/topo/defau
 const TILE_SERVER_PROXY = 'http://46.62.141.169:8080/tiles/{z}/{y}/{x}.png';
 
 // Active configuration
-// Using TILE_SERVER_PROXY to enable export functionality
-export const TILE_SERVER_URL = TILE_SERVER_PROXY;
+// Using TILE_SERVER_DIRECT because GitHub Pages requires HTTPS
+// Note: Map export may not work without CORS headers, but tiles will load
+export const TILE_SERVER_URL = TILE_SERVER_DIRECT;
 
 /**
  * Map configuration
