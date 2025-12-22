@@ -924,8 +924,8 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
         iconOptions.iconAnchor = [16, 16]; // Center anchor for 32x32 - prevents zoom drift
     } else {
         // Trafikkskilt - programmatic size control (too many to resize manually)
-        iconOptions.iconSize = [30, 30];
-        iconOptions.iconAnchor = [15, 15]; // Center anchor
+        iconOptions.iconSize = [32, 32];
+        iconOptions.iconAnchor = [16, 16]; // Center anchor
     }
 
     const icon = new CORSIcon(iconOptions);
