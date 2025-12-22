@@ -411,15 +411,18 @@ async function captureMapImage() {
     console.log('html2canvas is available, capturing map...');
 
     try {
-        // SVG signs are now inlined, so canvas won't be tainted
+        // SVG signs are inlined to prevent tainting
+        // Still need allowTaint for Kartverket tiles (cross-origin, no CORS)
+        // Canvas will be tainted by tiles, but toDataURL fallback handles it
         const canvas = await html2canvas(mapElement, {
             scale: 2, // 2x resolution for print quality
+            allowTaint: true, // Allow rendering cross-origin tiles
+            useCORS: false, // Tiles don't have CORS headers
             backgroundColor: '#ffffff',
-            logging: false, // Disable logging to reduce console noise
+            logging: false,
             windowWidth: mapElement.offsetWidth,
             windowHeight: mapElement.offsetHeight,
             ignoreElements: (element) => {
-                // Ignore elements with specific classes
                 return element.classList.contains('leaflet-control-container');
             }
         });
