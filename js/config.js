@@ -16,14 +16,16 @@
 // Direct Kartverket tiles (no CORS headers - export won't work)
 const TILE_SERVER_DIRECT = 'https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png';
 
-// Proxy server tiles (with CORS headers - export works)
-// REPLACE YOUR_SERVER_IP with your actual Hetzner IPv4 address
-const TILE_SERVER_PROXY = 'http://46.62.141.169:8080/tiles/{z}/{y}/{x}.png';
+// CORS proxy for Kartverket tiles (enables export)
+// Using corsproxy.io as free CORS proxy service
+const TILE_SERVER_CORS_PROXY = 'https://corsproxy.io/?' + encodeURIComponent('https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator') + '/{z}/{y}/{x}.png';
+
+// Your Hetzner proxy (HTTP only - doesn't work on GitHub Pages HTTPS)
+const TILE_SERVER_HETZNER = 'http://46.62.141.169:8080/tiles/{z}/{y}/{x}.png';
 
 // Active configuration
-// Using TILE_SERVER_DIRECT because GitHub Pages requires HTTPS
-// Note: Map export may not work without CORS headers, but tiles will load
-export const TILE_SERVER_URL = TILE_SERVER_DIRECT;
+// Using CORS proxy to enable both display and export
+export const TILE_SERVER_URL = TILE_SERVER_CORS_PROXY;
 
 /**
  * Map configuration
