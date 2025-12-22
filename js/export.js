@@ -411,11 +411,11 @@ async function captureMapImage() {
     console.log('html2canvas is available, capturing map...');
 
     try {
-        // SVG signs are inlined, tiles are CORS-enabled via proxy
-        // Canvas should not be tainted
+        // SVG signs are inlined, tiles use Vercel proxy with CORS headers
+        // Canvas will NOT be tainted - export should work!
         const canvas = await html2canvas(mapElement, {
             scale: 2, // 2x resolution for print quality
-            useCORS: true, // Use CORS-enabled tiles from proxy
+            useCORS: true, // Vercel proxy adds CORS headers
             backgroundColor: '#ffffff',
             logging: false,
             windowWidth: mapElement.offsetWidth,
