@@ -36,10 +36,40 @@ export async function exportMapImage(filename = null) {
         // Wait a moment for changes to render
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Debug: Check img elements have data URLs
-        const imgs = document.querySelectorAll('.leaflet-marker-pane img');
-        const dataUrlCount = Array.from(imgs).filter(img => img.src.startsWith('data:')).length;
-        console.log(`📸 Before capture - Total IMGs: ${imgs.length}, Base64 Data URL IMGs: ${dataUrlCount}`);
+        // Debug: Check what's in the DOM before capture
+        const allImgs = document.querySelectorAll('#map img');
+        console.log(`📸 Before capture - checking all images:`);
+        console.log(`  Total images in map: ${allImgs.length}`);
+
+        const imgsByType = {
+            dataUrl: 0,
+            vercelProxy: 0,
+            kartverket: 0,
+            other: []
+        };
+
+        allImgs.forEach(img => {
+            if (img.src.startsWith('data:')) {
+                imgsByType.dataUrl++;
+            } else if (img.src.includes('kartverket-tile-proxy.vercel.app')) {
+                imgsByType.vercelProxy++;
+            } else if (img.src.includes('cache.kartverket.no')) {
+                imgsByType.kartverket++;
+                console.warn(`⚠️ Direct Kartverket tile found (no proxy!): ${img.src}`);
+            } else if (!img.src.startsWith('http')) {
+                // Relative URL
+                imgsByType.other.push('relative: ' + img.src.substring(0, 50));
+            } else {
+                imgsByType.other.push(img.src.substring(0, 80));
+            }
+        });
+
+        console.log(`  - Data URLs (signs): ${imgsByType.dataUrl}`);
+        console.log(`  - Vercel proxy tiles: ${imgsByType.vercelProxy}`);
+        console.log(`  - Direct Kartverket (🔴 TAINT!): ${imgsByType.kartverket}`);
+        if (imgsByType.other.length > 0) {
+            console.log(`  - Other images:`, imgsByType.other);
+        }
 
         // Capture map
         console.log('Starting map capture...');
