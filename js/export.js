@@ -292,8 +292,37 @@ async function inlineSignSVGs() {
     const problemSVGs = [];
 
     try {
-        // Find all traffic sign images in the map
-        const signImages = document.querySelectorAll('.leaflet-marker-icon img');
+        // Debug: Check what markers exist
+        const allMarkers = document.querySelectorAll('.leaflet-marker-icon');
+        console.log(`🔍 Total marker icons in DOM: ${allMarkers.length}`);
+
+        // Check different possible structures
+        const imgInMarker = document.querySelectorAll('.leaflet-marker-icon img');
+        const imgAsMarker = document.querySelectorAll('img.leaflet-marker-icon');
+        const allImgs = document.querySelectorAll('.leaflet-marker-pane img');
+
+        console.log(`  - img inside marker div: ${imgInMarker.length}`);
+        console.log(`  - img as marker: ${imgAsMarker.length}`);
+        console.log(`  - all imgs in marker pane: ${allImgs.length}`);
+
+        // Sample first marker to see structure
+        if (allMarkers.length > 0) {
+            const sample = allMarkers[0];
+            console.log('  Sample marker HTML:', sample.outerHTML.substring(0, 200));
+            console.log('  Sample marker classes:', sample.className);
+            console.log('  Sample marker tag:', sample.tagName);
+            if (sample.src) console.log('  Sample marker src:', sample.src);
+        }
+
+        // Try to find sign images - Leaflet creates img with class leaflet-marker-icon
+        let signImages = document.querySelectorAll('img.leaflet-marker-icon');
+
+        // Fallback: try finding any images with .svg in src
+        if (signImages.length === 0) {
+            console.log('  Trying fallback selector...');
+            signImages = Array.from(document.querySelectorAll('.leaflet-marker-pane img'))
+                .filter(img => img.src && img.src.includes('.svg'));
+        }
 
         console.log(`🔍 Found ${signImages.length} sign images to inline`);
 
