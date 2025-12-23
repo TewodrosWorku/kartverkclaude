@@ -63,7 +63,7 @@ export class TextBoxManager {
         if (!this.placementMode) return;
 
         const textBoxId = `textbox_${Date.now()}_${this.textBoxCounter++}`;
-        const backgroundColor = this.currentTextBoxType === 'white' ? '#fff' : '#FFF59D';
+        const backgroundColor = this.currentTextBoxType === 'white' ? '#fff' : '#C0D81D';
         const defaultText = 'Dobbeltklikk for å redigere';
 
         // Create text box HTML
@@ -73,12 +73,12 @@ export class TextBoxManager {
                 color: #000;
                 border: 2px solid #000;
                 border-radius: 4px;
-                padding: 12px;
+                padding: 6px 8px;
                 font-size: 16px;
                 font-family: Arial, sans-serif;
-                min-width: 200px;
+                min-width: 150px;
                 max-width: 400px;
-                min-height: 60px;
+                min-height: 30px;
                 white-space: pre-wrap;
                 word-wrap: break-word;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -107,8 +107,8 @@ export class TextBoxManager {
             icon: L.divIcon({
                 className: 'textbox-marker',
                 html: textBoxHTML,
-                iconSize: [200, 60],
-                iconAnchor: [100, 30]
+                iconSize: [150, 40],
+                iconAnchor: [75, 20]
             }),
             draggable: true,
             autoPan: true
@@ -124,8 +124,8 @@ export class TextBoxManager {
             latlng: latlng,
             type: this.currentTextBoxType,
             text: defaultText,
-            width: 200,
-            height: 60
+            width: 150,
+            height: 40
         };
 
         this.textBoxes.push(textBoxData);
