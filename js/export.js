@@ -171,7 +171,40 @@ function prepareMapForExport() {
         });
     }
 
+    // Fix polyline/polygon positioning by resetting overlay pane transform
+    fixOverlayPaneForExport();
+
     console.log('Map prepared for export');
+}
+
+// Store overlay pane state for restoration
+let overlayPaneState = null;
+
+/**
+ * Fix overlay pane transform for accurate polyline/polygon export
+ */
+function fixOverlayPaneForExport() {
+    const overlayPane = document.querySelector('.leaflet-overlay-pane');
+    if (!overlayPane) {
+        console.log('📐 No overlay pane found (no polylines/polygons)');
+        return;
+    }
+
+    // Get original transform
+    const computedStyle = window.getComputedStyle(overlayPane);
+    const originalTransform = overlayPane.style.transform || computedStyle.transform;
+
+    overlayPaneState = {
+        element: overlayPane,
+        originalTransform: originalTransform
+    };
+
+    console.log('📐 Original overlay pane transform:', originalTransform);
+
+    // Reset transform to identity (no offset)
+    overlayPane.style.transform = 'translate3d(0px, 0px, 0px)';
+
+    console.log('📐 Overlay pane transform reset for export');
 }
 
 /**
@@ -217,7 +250,29 @@ function restoreMapAfterExport() {
         });
     }
 
+    // Restore overlay pane transform
+    restoreOverlayPaneAfterExport();
+
     console.log('Map restored after export');
+}
+
+/**
+ * Restore overlay pane transform after export
+ */
+function restoreOverlayPaneAfterExport() {
+    if (!overlayPaneState) {
+        return;
+    }
+
+    const { element, originalTransform } = overlayPaneState;
+
+    if (element && originalTransform) {
+        element.style.transform = originalTransform;
+        console.log('📐 Overlay pane transform restored:', originalTransform);
+    }
+
+    // Clear state
+    overlayPaneState = null;
 }
 
 /**
