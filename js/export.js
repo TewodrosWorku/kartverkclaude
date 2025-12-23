@@ -292,37 +292,8 @@ async function inlineSignSVGs() {
     const problemSVGs = [];
 
     try {
-        // Debug: Check what markers exist
-        const allMarkers = document.querySelectorAll('.leaflet-marker-icon');
-        console.log(`🔍 Total marker icons in DOM: ${allMarkers.length}`);
-
-        // Check different possible structures
-        const imgInMarker = document.querySelectorAll('.leaflet-marker-icon img');
-        const imgAsMarker = document.querySelectorAll('img.leaflet-marker-icon');
-        const allImgs = document.querySelectorAll('.leaflet-marker-pane img');
-
-        console.log(`  - img inside marker div: ${imgInMarker.length}`);
-        console.log(`  - img as marker: ${imgAsMarker.length}`);
-        console.log(`  - all imgs in marker pane: ${allImgs.length}`);
-
-        // Sample first marker to see structure
-        if (allMarkers.length > 0) {
-            const sample = allMarkers[0];
-            console.log('  Sample marker HTML:', sample.outerHTML.substring(0, 200));
-            console.log('  Sample marker classes:', sample.className);
-            console.log('  Sample marker tag:', sample.tagName);
-            if (sample.src) console.log('  Sample marker src:', sample.src);
-        }
-
-        // Try to find sign images - Leaflet creates img with class leaflet-marker-icon
-        let signImages = document.querySelectorAll('img.leaflet-marker-icon');
-
-        // Fallback: try finding any images with .svg in src
-        if (signImages.length === 0) {
-            console.log('  Trying fallback selector...');
-            signImages = Array.from(document.querySelectorAll('.leaflet-marker-pane img'))
-                .filter(img => img.src && img.src.includes('.svg'));
-        }
+        // Find all sign marker images - Leaflet creates img elements with class leaflet-marker-icon
+        const signImages = document.querySelectorAll('img.leaflet-marker-icon');
 
         console.log(`🔍 Found ${signImages.length} sign images to inline`);
 
@@ -401,8 +372,6 @@ async function inlineSignSVGs() {
                 // Replace img with inline SVG
                 parent.replaceChild(svgElement, img);
 
-                console.log(`✅ Inlined: ${src}`);
-
             } catch (err) {
                 console.error(`❌ Error inlining SVG ${src}:`, err);
                 problemSVGs.push({ file: src, reason: 'exception', error: err.message });
@@ -432,21 +401,34 @@ function restoreSignImages(inlinedSigns) {
         return;
     }
 
+    let restored = 0;
+    let failed = 0;
+
     try {
         for (const item of inlinedSigns) {
-            const { originalImg, inlinedSvg, parent, nextSibling } = item;
+            const { originalImg, inlinedSvg, parent } = item;
 
-            if (parent && inlinedSvg && inlinedSvg.parentNode === parent) {
-                if (nextSibling) {
-                    parent.insertBefore(originalImg, nextSibling);
-                } else {
+            try {
+                // Check if SVG is still in the DOM and has a parent
+                if (inlinedSvg && inlinedSvg.parentNode) {
+                    // Replace SVG with original img
+                    inlinedSvg.parentNode.replaceChild(originalImg, inlinedSvg);
+                    restored++;
+                } else if (parent && parent.isConnected) {
+                    // Parent exists but SVG was removed - just append img
                     parent.appendChild(originalImg);
+                    restored++;
+                } else {
+                    // Parent no longer in DOM - skip
+                    failed++;
                 }
-                parent.removeChild(inlinedSvg);
+            } catch (err) {
+                console.warn(`Failed to restore sign: ${item.src}`, err);
+                failed++;
             }
         }
 
-        console.log(`Restored ${inlinedSigns.length} sign images`);
+        console.log(`✅ Restored ${restored} sign images${failed > 0 ? ` (${failed} failed)` : ''}`);
 
     } catch (error) {
         console.error('Error restoring sign images:', error);
