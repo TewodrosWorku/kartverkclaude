@@ -36,6 +36,11 @@ export async function exportMapImage(filename = null) {
         // Wait a moment for changes to render
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // Debug: Check img elements have data URLs
+        const imgs = document.querySelectorAll('.leaflet-marker-pane img');
+        const dataUrlCount = Array.from(imgs).filter(img => img.src.startsWith('blob:')).length;
+        console.log(`📸 Before capture - Total IMGs: ${imgs.length}, Data URL IMGs: ${dataUrlCount}`);
+
         // Capture map
         console.log('Starting map capture...');
         const canvas = await captureMapImage();
@@ -314,7 +319,7 @@ async function inlineSignSVGs() {
 
                 const svgText = await response.text();
 
-                // Parse SVG
+                // Parse SVG to check for issues
                 const parser = new DOMParser();
                 const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
                 const svgElement = svgDoc.documentElement;
@@ -338,7 +343,6 @@ async function inlineSignSVGs() {
                 if (embeddedImages.length > 0) {
                     console.warn(`⚠️ SVG contains ${embeddedImages.length} embedded image(s): ${src}`);
                     problemSVGs.push({ file: src, reason: 'embedded_images', count: embeddedImages.length });
-                    // Continue anyway - might work
                 }
 
                 // Check for external references
@@ -348,29 +352,23 @@ async function inlineSignSVGs() {
                     problemSVGs.push({ file: src, reason: 'external_references' });
                 }
 
-                // Copy img styles to SVG
-                const computedStyle = window.getComputedStyle(img);
-                svgElement.style.width = computedStyle.width;
-                svgElement.style.height = computedStyle.height;
-                svgElement.style.transform = computedStyle.transform;
-                svgElement.style.transformOrigin = computedStyle.transformOrigin;
-                svgElement.style.position = 'absolute';
-                svgElement.style.pointerEvents = 'none';
+                // Convert SVG to data URL and update img src
+                // This keeps img element (html2canvas handles better) but embeds SVG data
+                const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+                const dataUrl = URL.createObjectURL(svgBlob);
 
-                // Store original for restoration
-                const parent = img.parentElement;
-                const nextSibling = img.nextSibling;
+                // Store original src for restoration
+                const originalSrc = img.src;
 
                 inlinedSigns.push({
-                    originalImg: img,
-                    inlinedSvg: svgElement,
-                    parent: parent,
-                    nextSibling: nextSibling,
+                    img: img,
+                    originalSrc: originalSrc,
+                    dataUrl: dataUrl,
                     src: src
                 });
 
-                // Replace img with inline SVG
-                parent.replaceChild(svgElement, img);
+                // Replace src with data URL (keeps img element, no CORS issue)
+                img.src = dataUrl;
 
             } catch (err) {
                 console.error(`❌ Error inlining SVG ${src}:`, err);
@@ -378,7 +376,7 @@ async function inlineSignSVGs() {
             }
         }
 
-        console.log(`✅ Successfully inlined ${inlinedSigns.length} sign SVGs`);
+        console.log(`✅ Successfully converted ${inlinedSigns.length} signs to data URLs`);
 
         if (problemSVGs.length > 0) {
             console.warn(`⚠️ Found ${problemSVGs.length} problematic SVG(s):`);
@@ -393,7 +391,7 @@ async function inlineSignSVGs() {
 }
 
 /**
- * Restore original img elements after export
+ * Restore original img src and clean up data URLs
  * @param {Array} inlinedSigns - Array from inlineSignSVGs
  */
 function restoreSignImages(inlinedSigns) {
@@ -402,33 +400,28 @@ function restoreSignImages(inlinedSigns) {
     }
 
     let restored = 0;
-    let failed = 0;
 
     try {
         for (const item of inlinedSigns) {
-            const { originalImg, inlinedSvg, parent } = item;
+            const { img, originalSrc, dataUrl } = item;
 
             try {
-                // Check if SVG is still in the DOM and has a parent
-                if (inlinedSvg && inlinedSvg.parentNode) {
-                    // Replace SVG with original img
-                    inlinedSvg.parentNode.replaceChild(originalImg, inlinedSvg);
+                // Restore original src
+                if (img && img.src === dataUrl) {
+                    img.src = originalSrc;
                     restored++;
-                } else if (parent && parent.isConnected) {
-                    // Parent exists but SVG was removed - just append img
-                    parent.appendChild(originalImg);
-                    restored++;
-                } else {
-                    // Parent no longer in DOM - skip
-                    failed++;
+                }
+
+                // Clean up object URL to free memory
+                if (dataUrl && dataUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(dataUrl);
                 }
             } catch (err) {
                 console.warn(`Failed to restore sign: ${item.src}`, err);
-                failed++;
             }
         }
 
-        console.log(`✅ Restored ${restored} sign images${failed > 0 ? ` (${failed} failed)` : ''}`);
+        console.log(`✅ Restored ${restored} sign images`);
 
     } catch (error) {
         console.error('Error restoring sign images:', error);
