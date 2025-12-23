@@ -84,7 +84,7 @@ export class TextBoxManager {
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                 cursor: move;
                 resize: both;
-                overflow: auto;
+                overflow: hidden;
                 line-height: 1.4;
             ">
                 <div class="textbox-content" style="pointer-events: none;">
