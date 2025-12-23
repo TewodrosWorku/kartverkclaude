@@ -112,6 +112,20 @@
     background-color: #c82333;
 }
 
+/* Active button state for toggle tools */
+.btn.active {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+    transform: scale(0.98);
+}
+
+.btn-primary.active {
+    background-color: var(--color-primary-dark);
+}
+
+.btn-secondary.active {
+    background-color: #5a6268;
+}
+
 .btn-success {
     background-color: var(--color-success);
     color: var(--color-white);

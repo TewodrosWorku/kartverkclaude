@@ -12,6 +12,7 @@ import { initSignManager } from './sign-manager.js';
 import { TextBoxManager } from './textbox-manager.js';
 import { exportMapImage } from './export.js';
 import { saveProject, loadProject, renderProjectList, showSaveProjectDialog, clearCurrentProject } from './project-manager.js';
+import { initDistanceMeasurement } from './distance-measurement.js';
 
 // Application state
 const appState = {
@@ -50,32 +51,36 @@ async function initializeApplication() {
         // 4. Set up distance markers callback
         setDistanceMarkersCallback(updateDistanceMarkers);
 
-        // 5. Initialize sign manager
-        console.log('4. Initializing sign manager...');
+        // 5. Initialize distance measurement tool
+        console.log('5. Initializing distance measurement...');
+        initDistanceMeasurement();
+
+        // 6. Initialize sign manager
+        console.log('6. Initializing sign manager...');
         await initSignManager();
 
-        // 6. Initialize text box manager
-        console.log('5. Initializing text box manager...');
+        // 7. Initialize text box manager
+        console.log('7. Initializing text box manager...');
         const { getMap } = await import('./map-manager.js');
         const map = getMap();
         textBoxManager = new TextBoxManager(map);
 
-        // 7. Setup all event listeners
-        console.log('6. Setting up event listeners...');
+        // 8. Setup all event listeners
+        console.log('8. Setting up event listeners...');
         setupEventListeners();
 
-        // 8. Setup tab system
-        console.log('7. Setting up tab system...');
+        // 9. Setup tab system
+        console.log('9. Setting up tab system...');
         setupTabSystem();
 
-        // 9. Load project list
-        console.log('8. Loading project list...');
+        // 10. Load project list
+        console.log('10. Loading project list...');
         renderProjectList();
 
-        // 10. Setup keyboard shortcuts
+        // 11. Setup keyboard shortcuts
         setupKeyboardShortcuts();
 
-        // 11. Setup error handlers
+        // 12. Setup error handlers
         setupGlobalErrorHandlers();
 
         // Mark as initialized
