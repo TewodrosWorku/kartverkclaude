@@ -22,6 +22,7 @@
         <div class="tab-navigation">
             <button class="tab active" data-tab="map">Kart</button>
             <button class="tab" data-tab="signs">Skilt</button>
+            <button class="tab" data-tab="textboxes">Tekstbokser</button>
             <button class="tab" data-tab="projects">Prosjekter</button>
         </div>
 
@@ -115,6 +116,30 @@
 
             <div class="sign-count">
                 <p>Plasserte skilt: <span id="signCount">0</span></p>
+            </div>
+        </div>
+
+        <!-- Text Boxes Tab Content -->
+        <div id="textboxesTab" class="tab-content">
+            <h2>Tekstbokser</h2>
+            <p class="help-text">Klikk på en tekstboks, deretter klikk på kartet for å plassere</p>
+
+            <div class="textbox-buttons">
+                <button id="whiteTextboxBtn" class="textbox-btn white-textbox-btn">
+                    <div class="textbox-preview white-textbox">
+                        <span>Hvit tekstboks</span>
+                    </div>
+                </button>
+
+                <button id="yellowTextboxBtn" class="textbox-btn yellow-textbox-btn">
+                    <div class="textbox-preview yellow-textbox">
+                        <span>Gul tekstboks</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="textbox-count">
+                <p>Plasserte tekstbokser: <span id="textboxCount">0</span></p>
             </div>
         </div>
 

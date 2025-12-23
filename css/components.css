@@ -293,6 +293,63 @@ label {
     font-size: 13px;
 }
 
+/* Text Box Buttons */
+.textbox-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.textbox-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 200ms ease;
+}
+
+.textbox-btn:hover {
+    transform: scale(1.02);
+}
+
+.textbox-btn:active {
+    transform: scale(0.98);
+}
+
+.textbox-preview {
+    width: 100%;
+    min-height: 80px;
+    border: 2px solid #000;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.white-textbox {
+    background-color: #fff;
+    color: #000;
+}
+
+.yellow-textbox {
+    background-color: #FFF59D;
+    color: #000;
+}
+
+.textbox-count {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background-color: var(--color-bg);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    font-size: 13px;
+}
+
 /* Project List */
 .project-list {
     display: flex;

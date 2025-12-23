@@ -9,6 +9,7 @@ import { initAddressSearch } from './address-search.js';
 import { initWorkZone, setDistanceMarkersCallback } from './work-zone.js';
 import { updateDistanceMarkers, toggleDistanceMarkers } from './distance-markers.js';
 import { initSignManager } from './sign-manager.js';
+import { TextBoxManager } from './textbox-manager.js';
 import { exportMapImage } from './export.js';
 import { saveProject, loadProject, renderProjectList, showSaveProjectDialog, clearCurrentProject } from './project-manager.js';
 
@@ -17,6 +18,9 @@ const appState = {
     initialized: false,
     currentTab: 'map'
 };
+
+// Global instances
+let textBoxManager = null;
 
 /**
  * Initialize the entire application
@@ -50,22 +54,28 @@ async function initializeApplication() {
         console.log('4. Initializing sign manager...');
         await initSignManager();
 
-        // 6. Setup all event listeners
-        console.log('5. Setting up event listeners...');
+        // 6. Initialize text box manager
+        console.log('5. Initializing text box manager...');
+        const { getMap } = await import('./map-manager.js');
+        const map = getMap();
+        textBoxManager = new TextBoxManager(map);
+
+        // 7. Setup all event listeners
+        console.log('6. Setting up event listeners...');
         setupEventListeners();
 
-        // 7. Setup tab system
-        console.log('6. Setting up tab system...');
+        // 8. Setup tab system
+        console.log('7. Setting up tab system...');
         setupTabSystem();
 
-        // 8. Load project list
-        console.log('7. Loading project list...');
+        // 9. Load project list
+        console.log('8. Loading project list...');
         renderProjectList();
 
-        // 9. Setup keyboard shortcuts
+        // 10. Setup keyboard shortcuts
         setupKeyboardShortcuts();
 
-        // 10. Setup error handlers
+        // 11. Setup error handlers
         setupGlobalErrorHandlers();
 
         // Mark as initialized
@@ -417,6 +427,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Export for debugging
 if (typeof window !== 'undefined') {
     window.appState = appState;
+}
+
+// Export text box manager for other modules
+export function getTextBoxManager() {
+    return textBoxManager;
 }
 
 console.log('AV-Plan app.js loaded');

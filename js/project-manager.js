@@ -8,6 +8,7 @@ import { getMap, getSelectedRoad, selectRoadAtPoint, clearSelectedRoad } from '.
 import { getWorkZone, placeStartMarker, placeEndMarker, clearWorkZone, workZoneState } from './work-zone.js';
 import { getPlacedSigns, restoreSigns, clearAllSigns, clearUndoHistory } from './sign-manager.js';
 import { updateDistanceMarkers, clearDistanceMarkers } from './distance-markers.js';
+import { getTextBoxManager } from './app.js';
 
 // Project state
 export const projectState = {
@@ -41,6 +42,8 @@ export function saveProject(projectName, metadata = {}) {
         const road = getSelectedRoad();
         const workZone = getWorkZone();
         const signs = getPlacedSigns();
+        const textBoxManager = getTextBoxManager();
+        const textBoxes = textBoxManager ? textBoxManager.getTextBoxesData() : [];
 
         // Create project object
         const project = {
@@ -76,6 +79,8 @@ export function saveProject(projectName, metadata = {}) {
             },
 
             signs: signs || [],
+
+            textBoxes: textBoxes || [],
 
             settings: {
                 snapToRoad: projectState.settings.snapToRoad,
@@ -177,6 +182,14 @@ export function loadProject(projectId) {
         // Restore signs
         if (project.signs && project.signs.length > 0) {
             restoreSigns(project.signs);
+        }
+
+        // Restore text boxes
+        if (project.textBoxes && project.textBoxes.length > 0) {
+            const textBoxManager = getTextBoxManager();
+            if (textBoxManager) {
+                textBoxManager.loadTextBoxes(project.textBoxes);
+            }
         }
 
         // Restore settings
@@ -359,6 +372,12 @@ export function clearCurrentProject() {
     clearWorkZone();
     clearAllSigns();
     clearDistanceMarkers();
+
+    // Clear text boxes
+    const textBoxManager = getTextBoxManager();
+    if (textBoxManager) {
+        textBoxManager.clearAllTextBoxes();
+    }
 
     // Clear undo history (fresh start for new project)
     clearUndoHistory();
