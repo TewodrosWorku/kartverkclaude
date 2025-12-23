@@ -65,9 +65,12 @@ export function saveProject(projectName, metadata = {}) {
             },
 
             selectedRoad: road ? {
-                id: road.veglenkesekvensid,
-                reference: road.vegsystemreferanse,
-                geometry: road.geojson
+                veglenkesekvensid: road.veglenkesekvensid,
+                vegsystemreferanse: road.vegsystemreferanse,
+                geojson: road.geojson,
+                lengde: road.lengde,
+                kommune: road.kommune,
+                veglenker: road.veglenker
             } : null,
 
             workZone: workZone ? {
@@ -146,23 +149,102 @@ export function loadProject(projectId) {
         }
 
         // Restore selected road
-        if (project.selectedRoad && project.selectedRoad.geometry) {
-            // Store road data temporarily in map state
-            import('./map-manager.js').then(module => {
-                module.mapState.selectedRoad = {
-                    veglenkesekvensid: project.selectedRoad.id,
-                    vegsystemreferanse: project.selectedRoad.reference,
-                    geojson: project.selectedRoad.geometry
+        if (project.selectedRoad && project.selectedRoad.geojson) {
+            // Import map-manager functions
+            import('./map-manager.js').then(async module => {
+                const { formatRoadReference, getRoadInfo, getSpeedLimit, getADT } = await import('./nvdb-api.js');
+                const { clearTurfLineCache } = await import('./work-zone.js');
+
+                // Build complete road data object
+                const roadData = {
+                    veglenkesekvensid: project.selectedRoad.veglenkesekvensid,
+                    vegsystemreferanse: project.selectedRoad.vegsystemreferanse,
+                    geojson: project.selectedRoad.geojson,
+                    lengde: project.selectedRoad.lengde,
+                    kommune: project.selectedRoad.kommune,
+                    veglenker: project.selectedRoad.veglenker
                 };
 
-                // Display road
-                module.displayRoad(
-                    {
-                        vegsystemreferanse: project.selectedRoad.reference,
-                        kommune: []
-                    },
-                    project.selectedRoad.geometry
-                );
+                // Store in map state
+                module.mapState.selectedRoad = roadData;
+
+                // Clear turf line cache (new road loaded)
+                clearTurfLineCache();
+
+                // Display road on map
+                module.displayRoad(roadData, roadData.geojson);
+
+                // Update sidebar UI with road details
+                const reference = formatRoadReference(roadData.vegsystemreferanse);
+                const roadInfo = getRoadInfo(roadData.vegsystemreferanse);
+
+                // Update road reference
+                const roadRefElement = document.getElementById('roadReference');
+                if (roadRefElement) {
+                    roadRefElement.textContent = reference;
+                }
+
+                // Build detailed information HTML
+                let detailsHtml = '';
+                if (roadInfo) {
+                    detailsHtml += `<strong>Kategori:</strong> ${roadInfo.kategoriNavn}<br>`;
+                    if (roadData.kommune) {
+                        detailsHtml += `<strong>Kommune:</strong> ${roadData.kommune}<br>`;
+                    }
+                    if (roadData.lengde) {
+                        detailsHtml += `<strong>Lengde:</strong> ${Math.round(roadData.lengde)}m<br>`;
+                    }
+                    detailsHtml += `<strong>ID:</strong> ${roadData.veglenkesekvensid}<br>`;
+                    if (roadInfo.trafikantgruppe) {
+                        const trafikantMap = {
+                            'K': 'Kjørende',
+                            'G': 'Gående og syklende'
+                        };
+                        detailsHtml += `<strong>Trafikantgruppe:</strong> ${trafikantMap[roadInfo.trafikantgruppe] || roadInfo.trafikantgruppe}<br>`;
+                    }
+                    if (roadInfo.retning) {
+                        detailsHtml += `<strong>Retning:</strong> ${roadInfo.retning}<br>`;
+                    }
+
+                    // Add placeholders for speed limit and ÅDT (will be fetched)
+                    detailsHtml += `<strong>Fartsgrense:</strong> <span id="speedLimit">Henter...</span><br>`;
+                    detailsHtml += `<strong>ÅDT:</strong> <span id="adt">Henter...</span>`;
+                } else if (roadData.kommune) {
+                    detailsHtml = `<strong>Kommune:</strong> ${roadData.kommune}`;
+                }
+
+                // Update road details
+                const roadDetailsElement = document.getElementById('roadDetails');
+                if (roadDetailsElement) {
+                    roadDetailsElement.innerHTML = detailsHtml;
+                }
+
+                // Fetch speed limit and ÅDT asynchronously (uses cache now!)
+                getSpeedLimit(roadData.veglenkesekvensid).then(speedLimit => {
+                    const speedLimitElement = document.getElementById('speedLimit');
+                    if (speedLimitElement) {
+                        if (speedLimit) {
+                            speedLimitElement.textContent = `${speedLimit} km/h`;
+                        } else {
+                            speedLimitElement.textContent = 'Ikke tilgjengelig';
+                            speedLimitElement.style.fontStyle = 'italic';
+                            speedLimitElement.style.color = '#999';
+                        }
+                    }
+                });
+
+                getADT(roadData.veglenkesekvensid).then(adt => {
+                    const adtElement = document.getElementById('adt');
+                    if (adtElement) {
+                        if (adt) {
+                            adtElement.textContent = adt.toLocaleString('no-NO');
+                        } else {
+                            adtElement.textContent = 'Ikke tilgjengelig';
+                            adtElement.style.fontStyle = 'italic';
+                            adtElement.style.color = '#999';
+                        }
+                    }
+                });
             });
         }
 

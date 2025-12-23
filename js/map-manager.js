@@ -5,7 +5,8 @@
  */
 
 import { findNearestRoad, getRoadDetails, getSpeedLimit, getADT, formatRoadReference, getRoadInfo, parseWKTToGeoJSON } from './nvdb-api.js';
-import { TILE_SERVER_URL, MAP_CONFIG } from './config.js';
+import { TILE_SERVER_URL, MAP_CONFIG, DEBUG } from './config.js';
+import { clearTurfLineCache } from './work-zone.js';
 
 // Global map state
 export const mapState = {
@@ -168,7 +169,7 @@ export async function selectRoadAtPoint(lat, lng) {
     let geojson = null;
 
     if (details.veglenker && Array.isArray(details.veglenker)) {
-        console.log(`Processing ${details.veglenker.length} veglenker`);
+        if (DEBUG) console.log(`Processing ${details.veglenker.length} veglenker`);
 
         // Sort veglenker by startposisjon to ensure correct order
         const sortedVeglenker = [...details.veglenker].sort((a, b) => a.startposisjon - b.startposisjon);
@@ -206,7 +207,7 @@ export async function selectRoadAtPoint(lat, lng) {
         return;
     }
 
-    console.log(`Displaying single road sequence: ${details.lengde || 0}m`);
+    if (DEBUG) console.log(`Displaying single road sequence: ${details.lengde || 0}m`);
 
     // Display road and show popup at click location
     displayRoad(details, geojson, lat, lng);
@@ -217,18 +218,21 @@ export async function selectRoadAtPoint(lat, lng) {
         geojson: geojson
     };
 
+    // Clear turf line cache (new road selected)
+    clearTurfLineCache();
+
     // Update UI with detailed road information
     const reference = formatRoadReference(details.vegsystemreferanse);
     const roadInfo = getRoadInfo(details.vegsystemreferanse);
 
-    console.log('Updating sidebar with road reference:', reference);
-    console.log('Road info:', roadInfo);
+    if (DEBUG) console.log('Updating sidebar with road reference:', reference);
+    if (DEBUG) console.log('Road info:', roadInfo);
 
     // Display main reference (kortform)
     const roadRefElement = document.getElementById('roadReference');
     if (roadRefElement) {
         roadRefElement.textContent = reference;
-        console.log('✓ Sidebar roadReference updated');
+        if (DEBUG) console.log('✓ Sidebar roadReference updated');
     } else {
         console.error('✗ roadReference element not found');
     }
@@ -265,7 +269,7 @@ export async function selectRoadAtPoint(lat, lng) {
     const roadDetailsElement = document.getElementById('roadDetails');
     if (roadDetailsElement) {
         roadDetailsElement.innerHTML = detailsHtml;
-        console.log('✓ Sidebar roadDetails updated');
+        if (DEBUG) console.log('✓ Sidebar roadDetails updated');
     } else {
         console.error('✗ roadDetails element not found');
     }
@@ -373,11 +377,11 @@ function addDistanceLabelsToRoad(roadData, geojson) {
     const totalLength = roadData.lengde || 0;
 
     if (totalLength === 0) {
-        console.log('No road length available for labels');
+        if (DEBUG) console.log('No road length available for labels');
         return;
     }
 
-    console.log(`Adding distance labels for sequence of ${Math.round(totalLength)}m`);
+    if (DEBUG) console.log(`Adding distance labels for sequence of ${Math.round(totalLength)}m`);
 
     // Create a line from the geojson for label placement
     let roadLine;
@@ -399,17 +403,17 @@ function addDistanceLabelsToRoad(roadData, geojson) {
             if (allCoords.length > 0) {
                 roadLine = turf.lineString(allCoords);
             } else {
-                console.log('No coordinates in FeatureCollection');
+                if (DEBUG) console.log('No coordinates in FeatureCollection');
                 return;
             }
         } else {
-            console.log('Unsupported geometry type for labels');
+            if (DEBUG) console.log('Unsupported geometry type for labels');
             return;
         }
 
         // Calculate actual line length using turf
         const lineLength = turf.length(roadLine, { units: 'meters' });
-        console.log(`Line geometry length: ${Math.round(lineLength)}m`);
+        if (DEBUG) console.log(`Line geometry length: ${Math.round(lineLength)}m`);
 
         // Place labels every 25m
         for (let distance = 0; distance <= totalLength; distance += 25) {
@@ -454,7 +458,7 @@ function addDistanceLabelsToRoad(roadData, geojson) {
             }
         }
 
-        console.log(`Placed ${mapState.distanceLabels ? mapState.distanceLabels.length : 0} distance labels`);
+        if (DEBUG) console.log(`Placed ${mapState.distanceLabels ? mapState.distanceLabels.length : 0} distance labels`);
 
     } catch (error) {
         console.error('Error adding distance labels:', error);
@@ -513,6 +517,9 @@ export function clearSelectedRoad() {
     }
 
     mapState.selectedRoad = null;
+
+    // Clear turf line cache
+    clearTurfLineCache();
 
     // Update UI
     document.getElementById('roadReference').textContent = 'Ingen vei valgt';

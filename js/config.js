@@ -46,8 +46,15 @@ export const NVDB_API = {
     timeout: 10000
 };
 
+/**
+ * Debug configuration
+ * Set to true to enable verbose logging in geometry parsing and transforms
+ */
+export const DEBUG = false;
+
 export default {
     TILE_SERVER_URL,
     MAP_CONFIG,
-    NVDB_API
+    NVDB_API,
+    DEBUG
 };

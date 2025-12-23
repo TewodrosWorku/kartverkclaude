@@ -21,6 +21,7 @@ const CORSIcon = L.Icon.extend({
 const signState = {
     library: null,
     placedSigns: [],
+    signsById: new Map(), // O(1) lookup: id → sign object
     snapEnabled: false,
     // Undo/Redo history
     history: [],
@@ -578,6 +579,7 @@ function placePolygon(signId, latlng, vertices = null) {
     };
 
     signState.placedSigns.push(placedPolygon);
+    signState.signsById.set(placedPolygon.id, placedPolygon);
 
     // Record polygon placement in history
     addToHistory({
@@ -609,7 +611,7 @@ function placePolygon(signId, latlng, vertices = null) {
  * @returns {HTMLElement} Popup element with event listeners
  */
 function createPolygonPopupElement(sign, polygonId) {
-    const placedPolygon = signState.placedSigns.find(s => s.id === polygonId);
+    const placedPolygon = signState.signsById.get(polygonId);
     if (!placedPolygon) return document.createElement('div');
 
     const container = document.createElement('div');
@@ -667,8 +669,9 @@ function removePolygon(polygonId) {
         getMap().removeLayer(placedPolygon.polygon);
     }
 
-    // Remove from array
+    // Remove from array and map
     signState.placedSigns.splice(index, 1);
+    signState.signsById.delete(polygonId);
 
     // Update UI
     updateSignCount();
@@ -775,6 +778,7 @@ function placePolyline(signId, latlng, vertices = null) {
     };
 
     signState.placedSigns.push(placedPolyline);
+    signState.signsById.set(placedPolyline.id, placedPolyline);
 
     // Record polyline placement in history
     addToHistory({
@@ -806,7 +810,7 @@ function placePolyline(signId, latlng, vertices = null) {
  * @returns {HTMLElement} Popup element with event listeners
  */
 function createPolylinePopupElement(sign, polylineId) {
-    const placedPolyline = signState.placedSigns.find(s => s.id === polylineId);
+    const placedPolyline = signState.signsById.get(polylineId);
     if (!placedPolyline) return document.createElement('div');
 
     const container = document.createElement('div');
@@ -864,8 +868,9 @@ function removePolyline(polylineId) {
         getMap().removeLayer(placedPolyline.polyline);
     }
 
-    // Remove from array
+    // Remove from array and map
     signState.placedSigns.splice(index, 1);
+    signState.signsById.delete(polylineId);
 
     // Update UI
     updateSignCount();
@@ -950,7 +955,7 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
     // Track old position for undo on drag start
     let dragStartPosition = null;
     marker.on('dragstart', () => {
-        const placedSign = signState.placedSigns.find(s => s.id === marker._leaflet_id);
+        const placedSign = signState.signsById.get(marker._leaflet_id);
         if (placedSign) {
             dragStartPosition = { lat: placedSign.position.lat, lng: placedSign.position.lng };
         }
@@ -958,7 +963,7 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
 
     // Preserve rotation during drag
     marker.on('drag', () => {
-        const placedSign = signState.placedSigns.find(s => s.id === marker._leaflet_id);
+        const placedSign = signState.signsById.get(marker._leaflet_id);
         if (placedSign && placedSign.rotation !== 0) {
             const icon = marker.getElement();
             if (icon) {
@@ -985,7 +990,7 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
         marker.setLatLng(snappedPos);
 
         // Update stored position
-        const placedSign = signState.placedSigns.find(s => s.id === marker._leaflet_id);
+        const placedSign = signState.signsById.get(marker._leaflet_id);
         if (placedSign) {
             const oldPos = dragStartPosition;
             const newPosObj = { lat: snappedPos.lat, lng: snappedPos.lng };
@@ -1077,6 +1082,7 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
     };
 
     signState.placedSigns.push(placedSign);
+    signState.signsById.set(placedSign.id, placedSign);
 
     // Record sign placement in history
     addToHistory({
@@ -1104,7 +1110,7 @@ export function placeSign(signId, latlng, rotation = 0, vertices = null) {
  * @returns {HTMLElement} Popup element with event listeners
  */
 function createSignPopupElement(sign, markerId) {
-    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    const placedSign = signState.signsById.get(markerId);
     if (!placedSign) return document.createElement('div');
 
     // Create container
@@ -1234,7 +1240,7 @@ function createSignPopupElement(sign, markerId) {
  * @param {number} angle - Rotation angle (0-360)
  */
 export function setSignRotation(markerId, angle) {
-    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    const placedSign = signState.signsById.get(markerId);
 
     if (!placedSign) {
         console.error(`Sign not found: ${markerId}`);
@@ -1270,7 +1276,7 @@ export function setSignRotation(markerId, angle) {
  * @param {string} text - Custom text message
  */
 export function setSignCustomText(markerId, text) {
-    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    const placedSign = signState.signsById.get(markerId);
 
     if (!placedSign) {
         console.error(`Sign not found: ${markerId}`);
@@ -1328,7 +1334,7 @@ export function setSignCustomText(markerId, text) {
  * @param {number} markerId - Leaflet marker ID
  */
 export function rotateSign(markerId) {
-    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    const placedSign = signState.signsById.get(markerId);
 
     if (!placedSign) {
         console.error(`Sign not found: ${markerId}`);
@@ -1348,7 +1354,7 @@ export function rotateSign(markerId) {
  * @returns {Object|null} New placed sign object
  */
 export function duplicateSign(markerId) {
-    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    const placedSign = signState.signsById.get(markerId);
 
     if (!placedSign) {
         console.error(`Sign not found: ${markerId}`);
@@ -1422,8 +1428,9 @@ function removeSignInternal(markerId) {
         map.removeLayer(placedSign.textLabel);
     }
 
-    // Remove from array
+    // Remove from array and map
     signState.placedSigns.splice(index, 1);
+    signState.signsById.delete(markerId);
 
     // Update UI
     updateSignCount();
@@ -1444,9 +1451,14 @@ function restoreSign(signData) {
 
     // Update the ID to match original if provided
     if (signData.id && newSign) {
-        const placedSign = signState.placedSigns.find(s => s.id === newSign.id);
+        const placedSign = signState.signsById.get(newSign.id);
         if (placedSign) {
+            // Remove old ID from map
+            signState.signsById.delete(newSign.id);
+            // Update ID
             placedSign.id = signData.id;
+            // Add with new ID to map
+            signState.signsById.set(signData.id, placedSign);
         }
     }
 }
@@ -1457,7 +1469,7 @@ function restoreSign(signData) {
  * @param {Object} position - New position {lat, lng}
  */
 function moveSignInternal(markerId, position) {
-    const placedSign = signState.placedSigns.find(s => s.id === markerId);
+    const placedSign = signState.signsById.get(markerId);
     if (!placedSign || !placedSign.marker) return;
 
     const latlng = L.latLng(position.lat, position.lng);
@@ -1604,8 +1616,9 @@ export function clearAllSigns() {
         }
     });
 
-    // Clear array
+    // Clear array and map
     signState.placedSigns = [];
+    signState.signsById.clear();
 
     // Update UI
     updateSignCount();
@@ -1702,6 +1715,24 @@ function reapplyAllRotations() {
 }
 
 /**
+ * Debounce helper function
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/**
  * Initialize sign manager
  */
 export async function initSignManager() {
@@ -1718,14 +1749,18 @@ export async function initSignManager() {
     // Render palette
     renderSignPalette(library);
 
-    // Setup search functionality
+    // Setup search functionality with debouncing
     const searchInput = document.getElementById('signSearchInput');
     if (searchInput) {
+        const debouncedSearch = debounce((query) => {
+            renderSignPalette(library, query);
+        }, 300); // 300ms debounce delay
+
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.trim();
-            renderSignPalette(library, query);
+            debouncedSearch(query);
         });
-        console.log('✓ Sign search initialized');
+        console.log('✓ Sign search initialized (with 300ms debouncing)');
     }
 
     // Setup drop zone

@@ -14,6 +14,7 @@ const DEBOUNCE_DELAY = 300; // milliseconds
 let searchResultsElement = null;
 let currentMarker = null;
 let debounceTimer = null;
+let currentSearchController = null; // Track current search to abort stale requests
 
 /**
  * Debounce function to delay API calls
@@ -29,7 +30,7 @@ function debounce(func, delay) {
 }
 
 /**
- * Search for Norwegian addresses
+ * Search for Norwegian addresses (with abort control for race condition prevention)
  * @param {string} query - Search query
  * @returns {Promise<Array>} Array of addresses or empty array on error
  */
@@ -38,10 +39,18 @@ async function searchAddress(query) {
         return [];
     }
 
+    // Abort any previous search in progress
+    if (currentSearchController) {
+        currentSearchController.abort();
+    }
+
+    // Create new controller for this search
+    const controller = new AbortController();
+    currentSearchController = controller;
+
     try {
         const url = `${GEONORGE_API}?fuzzy=true&sok=${encodeURIComponent(query)}`;
 
-        const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch(url, {
@@ -57,19 +66,28 @@ async function searchAddress(query) {
 
         const data = await response.json();
 
-        if (data.adresser && Array.isArray(data.adresser)) {
-            return data.adresser.slice(0, 5); // Return top 5 results
+        // Only return results if this is still the current search
+        if (controller === currentSearchController) {
+            if (data.adresser && Array.isArray(data.adresser)) {
+                return data.adresser.slice(0, 5); // Return top 5 results
+            }
         }
 
         return [];
 
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.error('Address search timeout');
+            // Silently ignore aborts (they're expected when aborting stale searches)
+            return [];
         } else {
             console.error('Address search error:', error);
         }
         return [];
+    } finally {
+        // Clear controller reference if this was the current search
+        if (controller === currentSearchController) {
+            currentSearchController = null;
+        }
     }
 }
 

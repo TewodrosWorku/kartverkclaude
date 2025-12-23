@@ -4,6 +4,8 @@
  * @module nvdb-api
  */
 
+import { DEBUG } from './config.js';
+
 // Constants
 const NVDB_BASE_URL = 'https://nvdbapiles.atlas.vegvesen.no';
 const API_VERSION = 'v4';
@@ -14,6 +16,13 @@ const REQUEST_TIMEOUT = 10000; // 10 seconds
 // Using corsproxy.io - a reliable public CORS proxy
 const USE_CORS_PROXY = true;
 const CORS_PROXY = 'https://corsproxy.io/?';
+
+// Cache for NVDB data (speed limits, ÅDT)
+const speedLimitCache = new Map(); // veglenkesekvensid → speed limit value
+const adtCache = new Map(); // veglenkesekvensid → ÅDT value
+
+// In-flight request tracking to prevent duplicate requests
+const inFlightRequests = new Map(); // key → Promise
 
 /**
  * Make authenticated request to NVDB API
@@ -36,7 +45,7 @@ async function makeRequest(endpoint, params = {}) {
             ? `${CORS_PROXY}${encodeURIComponent(url.toString())}`
             : url.toString();
 
-        console.log(`Making request to: ${USE_CORS_PROXY ? 'CORS Proxy → ' : ''}${url.toString()}`);
+        if (DEBUG) console.log(`Making request to: ${USE_CORS_PROXY ? 'CORS Proxy → ' : ''}${url.toString()}`);
 
         // Setup timeout
         const controller = new AbortController();
@@ -62,7 +71,7 @@ async function makeRequest(endpoint, params = {}) {
         }
 
         const data = await response.json();
-        console.log(`✓ API request successful: ${url.pathname}`);
+        if (DEBUG) console.log(`✓ API request successful: ${url.pathname}`);
         return data;
 
     } catch (error) {
@@ -87,7 +96,7 @@ async function makeRequest(endpoint, params = {}) {
  * const road = await findNearestRoad(63.4305, 10.3951, 50);
  */
 export async function findNearestRoad(lat, lon, maxDistance = 50) {
-    console.log(`Finding nearest road to [${lat}, ${lon}] within ${maxDistance}m`);
+    if (DEBUG) console.log(`Finding nearest road to [${lat}, ${lon}] within ${maxDistance}m`);
 
     // NVDB API V4 Posisjon endpoint - finds nearest road to coordinates
     // Uses lat/lon for WGS84 coordinates and maks_avstand for max distance in meters
@@ -105,8 +114,8 @@ export async function findNearestRoad(lat, lon, maxDistance = 50) {
 
     // Get the first (closest) result
     const posisjon = data[0];
-    console.log(`Found road at ${posisjon.avstand?.toFixed(1) || 0}m distance`);
-    console.log('Posisjon response:', posisjon);
+    if (DEBUG) console.log(`Found road at ${posisjon.avstand?.toFixed(1) || 0}m distance`);
+    if (DEBUG) console.log('Posisjon response:', posisjon);
 
     // Extract road data from posisjon response
     const roadData = {
@@ -118,7 +127,7 @@ export async function findNearestRoad(lat, lon, maxDistance = 50) {
         relativPosisjon: posisjon.veglenkesekvens?.relativPosisjon
     };
 
-    console.log('Extracted veglenkesekvensid:', roadData.veglenkesekvensid);
+    if (DEBUG) console.log('Extracted veglenkesekvensid:', roadData.veglenkesekvensid);
     return roadData;
 }
 
@@ -135,7 +144,7 @@ export async function getRoadDetails(veglenkesekvensid) {
         return null;
     }
 
-    console.log(`Fetching road sequence details for ID: ${veglenkesekvensid}`);
+    if (DEBUG) console.log(`Fetching road sequence details for ID: ${veglenkesekvensid}`);
 
     // Fetch just this single veglenkesekvens by ID
     // Note: The V4 API doesn't need inkluder parameter - it returns geometri by default
@@ -146,79 +155,139 @@ export async function getRoadDetails(veglenkesekvensid) {
         return null;
     }
 
-    console.log(`Road sequence fetched successfully: ${data.lengde || 0}m with ${data.veglenker?.length || 0} veglenker`);
+    if (DEBUG) console.log(`Road sequence fetched successfully: ${data.lengde || 0}m with ${data.veglenker?.length || 0} veglenker`);
 
     return data;
 }
 
 /**
- * Get speed limit for a road segment
+ * Get speed limit for a road segment (with caching and de-duplication)
  * @param {string} veglenkesekvensid - Road link sequence ID
  * @returns {Promise<number|null>} Speed limit in km/h or null
  */
 export async function getSpeedLimit(veglenkesekvensid) {
     if (!veglenkesekvensid) return null;
 
-    console.log(`Fetching speed limit for veglenkesekvens: ${veglenkesekvensid}`);
-
-    // Object type 105 = Fartsgrense (Speed limit)
-    const data = await makeRequest(`/vegobjekter/api/v4/vegobjekter/105`, {
-        veglenkesekvens: veglenkesekvensid,
-        inkluder: 'egenskaper'
-    });
-
-    if (!data || !data.objekter || data.objekter.length === 0) {
-        console.log('No speed limit found for this road segment');
-        return null;
+    // Check cache first
+    if (speedLimitCache.has(veglenkesekvensid)) {
+        if (DEBUG) console.log(`Speed limit cache hit for ${veglenkesekvensid}`);
+        return speedLimitCache.get(veglenkesekvensid);
     }
 
-    // Get the first speed limit object
-    const speedLimitObj = data.objekter[0];
-
-    // Find the "Fartsgrense" property (property type 2021)
-    const speedProp = speedLimitObj.egenskaper?.find(prop => prop.id === 2021);
-
-    if (speedProp && speedProp.verdi) {
-        console.log(`Speed limit found: ${speedProp.verdi} km/h`);
-        return parseInt(speedProp.verdi);
+    // Check if request is already in-flight
+    const requestKey = `speedlimit_${veglenkesekvensid}`;
+    if (inFlightRequests.has(requestKey)) {
+        if (DEBUG) console.log(`Reusing in-flight speed limit request for ${veglenkesekvensid}`);
+        return inFlightRequests.get(requestKey);
     }
 
-    return null;
+    if (DEBUG) console.log(`Fetching speed limit for veglenkesekvens: ${veglenkesekvensid}`);
+
+    // Create new request
+    const requestPromise = (async () => {
+        try {
+            // Object type 105 = Fartsgrense (Speed limit)
+            const data = await makeRequest(`/vegobjekter/api/v4/vegobjekter/105`, {
+                veglenkesekvens: veglenkesekvensid,
+                inkluder: 'egenskaper'
+            });
+
+            if (!data || !data.objekter || data.objekter.length === 0) {
+                if (DEBUG) console.log('No speed limit found for this road segment');
+                speedLimitCache.set(veglenkesekvensid, null); // Cache null result
+                return null;
+            }
+
+            // Get the first speed limit object
+            const speedLimitObj = data.objekter[0];
+
+            // Find the "Fartsgrense" property (property type 2021)
+            const speedProp = speedLimitObj.egenskaper?.find(prop => prop.id === 2021);
+
+            if (speedProp && speedProp.verdi) {
+                const speedLimit = parseInt(speedProp.verdi);
+                if (DEBUG) console.log(`Speed limit found: ${speedLimit} km/h`);
+                speedLimitCache.set(veglenkesekvensid, speedLimit);
+                return speedLimit;
+            }
+
+            speedLimitCache.set(veglenkesekvensid, null);
+            return null;
+        } finally {
+            // Remove from in-flight tracking
+            inFlightRequests.delete(requestKey);
+        }
+    })();
+
+    // Track in-flight request
+    inFlightRequests.set(requestKey, requestPromise);
+
+    return requestPromise;
 }
 
 /**
- * Get ÅDT (Annual Average Daily Traffic) for a road segment
+ * Get ÅDT (Annual Average Daily Traffic) for a road segment (with caching and de-duplication)
  * @param {string} veglenkesekvensid - Road link sequence ID
  * @returns {Promise<number|null>} ÅDT value or null
  */
 export async function getADT(veglenkesekvensid) {
     if (!veglenkesekvensid) return null;
 
-    console.log(`Fetching ÅDT for veglenkesekvens: ${veglenkesekvensid}`);
-
-    // Object type 540 = Trafikkmengde (Traffic volume / ÅDT)
-    const data = await makeRequest(`/vegobjekter/api/v4/vegobjekter/540`, {
-        veglenkesekvens: veglenkesekvensid,
-        inkluder: 'egenskaper'
-    });
-
-    if (!data || !data.objekter || data.objekter.length === 0) {
-        console.log('No ÅDT data found for this road segment');
-        return null;
+    // Check cache first
+    if (adtCache.has(veglenkesekvensid)) {
+        if (DEBUG) console.log(`ÅDT cache hit for ${veglenkesekvensid}`);
+        return adtCache.get(veglenkesekvensid);
     }
 
-    // Get the first traffic volume object
-    const adtObj = data.objekter[0];
-
-    // Find the "ÅDT, total" property (property type 4623)
-    const adtProp = adtObj.egenskaper?.find(prop => prop.id === 4623);
-
-    if (adtProp && adtProp.verdi) {
-        console.log(`ÅDT found: ${adtProp.verdi}`);
-        return parseInt(adtProp.verdi);
+    // Check if request is already in-flight
+    const requestKey = `adt_${veglenkesekvensid}`;
+    if (inFlightRequests.has(requestKey)) {
+        if (DEBUG) console.log(`Reusing in-flight ÅDT request for ${veglenkesekvensid}`);
+        return inFlightRequests.get(requestKey);
     }
 
-    return null;
+    if (DEBUG) console.log(`Fetching ÅDT for veglenkesekvens: ${veglenkesekvensid}`);
+
+    // Create new request
+    const requestPromise = (async () => {
+        try {
+            // Object type 540 = Trafikkmengde (Traffic volume / ÅDT)
+            const data = await makeRequest(`/vegobjekter/api/v4/vegobjekter/540`, {
+                veglenkesekvens: veglenkesekvensid,
+                inkluder: 'egenskaper'
+            });
+
+            if (!data || !data.objekter || data.objekter.length === 0) {
+                if (DEBUG) console.log('No ÅDT data found for this road segment');
+                adtCache.set(veglenkesekvensid, null); // Cache null result
+                return null;
+            }
+
+            // Get the first traffic volume object
+            const adtObj = data.objekter[0];
+
+            // Find the "ÅDT, total" property (property type 4623)
+            const adtProp = adtObj.egenskaper?.find(prop => prop.id === 4623);
+
+            if (adtProp && adtProp.verdi) {
+                const adt = parseInt(adtProp.verdi);
+                if (DEBUG) console.log(`ÅDT found: ${adt}`);
+                adtCache.set(veglenkesekvensid, adt);
+                return adt;
+            }
+
+            adtCache.set(veglenkesekvensid, null);
+            return null;
+        } finally {
+            // Remove from in-flight tracking
+            inFlightRequests.delete(requestKey);
+        }
+    })();
+
+    // Track in-flight request
+    inFlightRequests.set(requestKey, requestPromise);
+
+    return requestPromise;
 }
 
 /**
@@ -360,7 +429,7 @@ function transformCoordinates(coordinates) {
 
         // Transform from SRID 5973 to WGS84
         const transformed = proj4Lib('EPSG:5973', 'EPSG:4326', coordinates);
-        console.log(`Transformed ${coordinates} -> ${transformed}`);
+        if (DEBUG) console.log(`Transformed ${coordinates} -> ${transformed}`);
         return transformed;
     } catch (error) {
         console.error('Error transforming coordinates:', error);
@@ -410,8 +479,8 @@ export function parseWKTToGeoJSON(wkt, srid = 5973) {
                     const [x, y] = values; // Ignore Z if present
                     return srid === 5973 ? transformCoordinates([x, y]) : [x, y];
                 });
-                console.log(`Parsed LINESTRING with ${points.length} points`);
-                console.log('First point:', points[0], 'Last point:', points[points.length - 1]);
+                if (DEBUG) console.log(`Parsed LINESTRING with ${points.length} points`);
+                if (DEBUG) console.log('First point:', points[0], 'Last point:', points[points.length - 1]);
                 return {
                     type: 'LineString',
                     coordinates: points

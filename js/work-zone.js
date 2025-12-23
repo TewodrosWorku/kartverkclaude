@@ -11,7 +11,9 @@ export const workZoneState = {
     startMarker: null,
     endMarker: null,
     snapEnabled: false,
-    mode: null // 'setStart', 'setEnd', or null
+    mode: null, // 'setStart', 'setEnd', or null
+    cachedTurfLine: null, // Cached turf line for performance
+    cachedRoadId: null // Track which road the cache is for
 };
 
 // Reference to distance marker update function (will be set by app.js)
@@ -26,22 +28,23 @@ export function setDistanceMarkersCallback(callback) {
 }
 
 /**
- * Calculate distance along sequence for a point
- * @param {L.LatLng} latlng - Point to calculate distance for
- * @returns {number|null} Distance in meters along sequence, or null if error
+ * Get or build cached turf line for the selected road
+ * @returns {Object|null} Turf line string or null if no road
  */
-export function calculateDistanceAlongSequence(latlng) {
+function getCachedTurfLine() {
     const road = getSelectedRoad();
 
     if (!road || !road.geojson) {
         return null;
     }
 
-    try {
-        // Convert latlng to turf point
-        const point = turf.point([latlng.lng, latlng.lat]);
+    // Check if cache is valid for current road
+    if (workZoneState.cachedTurfLine && workZoneState.cachedRoadId === road.veglenkesekvensid) {
+        return workZoneState.cachedTurfLine;
+    }
 
-        // Convert road geometry to turf format
+    // Build new turf line and cache it
+    try {
         let line;
         if (road.geojson.type === 'LineString') {
             line = turf.lineString(road.geojson.coordinates);
@@ -66,6 +69,42 @@ export function calculateDistanceAlongSequence(latlng) {
             return null;
         }
 
+        // Cache the line
+        workZoneState.cachedTurfLine = line;
+        workZoneState.cachedRoadId = road.veglenkesekvensid;
+        console.log(`Cached turf line for road ${road.veglenkesekvensid}`);
+
+        return line;
+    } catch (error) {
+        console.error('Error building turf line:', error);
+        return null;
+    }
+}
+
+/**
+ * Clear the cached turf line (call when road changes)
+ */
+export function clearTurfLineCache() {
+    workZoneState.cachedTurfLine = null;
+    workZoneState.cachedRoadId = null;
+}
+
+/**
+ * Calculate distance along sequence for a point
+ * @param {L.LatLng} latlng - Point to calculate distance for
+ * @returns {number|null} Distance in meters along sequence, or null if error
+ */
+export function calculateDistanceAlongSequence(latlng) {
+    try {
+        // Convert latlng to turf point
+        const point = turf.point([latlng.lng, latlng.lat]);
+
+        // Get cached turf line
+        const line = getCachedTurfLine();
+        if (!line) {
+            return null;
+        }
+
         // Find nearest point on line
         const snapped = turf.nearestPointOnLine(line, point);
 
@@ -75,7 +114,6 @@ export function calculateDistanceAlongSequence(latlng) {
         }
 
         return null;
-
     } catch (error) {
         console.error('Error calculating distance along sequence:', error);
         return null;
@@ -88,9 +126,7 @@ export function calculateDistanceAlongSequence(latlng) {
  * @returns {L.LatLng} Snapped point or original if no road selected
  */
 export function snapToRoad(latlng) {
-    const road = getSelectedRoad();
-
-    if (!road || !road.geojson || !workZoneState.snapEnabled) {
+    if (!workZoneState.snapEnabled) {
         return latlng;
     }
 
@@ -98,30 +134,9 @@ export function snapToRoad(latlng) {
         // Convert latlng to turf point
         const point = turf.point([latlng.lng, latlng.lat]);
 
-        // Convert road geometry to turf format
-        let line;
-        if (road.geojson.type === 'LineString') {
-            line = turf.lineString(road.geojson.coordinates);
-        } else if (road.geojson.type === 'MultiLineString') {
-            // Flatten to single line
-            const allCoords = road.geojson.coordinates.flat();
-            line = turf.lineString(allCoords);
-        } else if (road.geojson.type === 'FeatureCollection') {
-            // Combine all features into one line
-            const allCoords = [];
-            road.geojson.features.forEach(feature => {
-                if (feature.geometry.type === 'LineString') {
-                    allCoords.push(...feature.geometry.coordinates);
-                }
-            });
-            if (allCoords.length > 0) {
-                line = turf.lineString(allCoords);
-            } else {
-                console.log('Cannot snap to FeatureCollection - no coordinates');
-                return latlng;
-            }
-        } else {
-            console.log('Cannot snap to this geometry type');
+        // Get cached turf line
+        const line = getCachedTurfLine();
+        if (!line) {
             return latlng;
         }
 
@@ -133,7 +148,6 @@ export function snapToRoad(latlng) {
         }
 
         return latlng;
-
     } catch (error) {
         console.error('Error snapping to road:', error);
         return latlng;
@@ -556,5 +570,6 @@ export default {
     getWorkZone,
     setDistanceMarkersCallback,
     calculateDistanceAlongSequence,
+    clearTurfLineCache,
     workZoneState
 };
