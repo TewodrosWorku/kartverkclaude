@@ -38,8 +38,8 @@ export async function exportMapImage(filename = null) {
 
         // Debug: Check img elements have data URLs
         const imgs = document.querySelectorAll('.leaflet-marker-pane img');
-        const dataUrlCount = Array.from(imgs).filter(img => img.src.startsWith('blob:')).length;
-        console.log(`📸 Before capture - Total IMGs: ${imgs.length}, Data URL IMGs: ${dataUrlCount}`);
+        const dataUrlCount = Array.from(imgs).filter(img => img.src.startsWith('data:')).length;
+        console.log(`📸 Before capture - Total IMGs: ${imgs.length}, Base64 Data URL IMGs: ${dataUrlCount}`);
 
         // Capture map
         console.log('Starting map capture...');
@@ -352,10 +352,10 @@ async function inlineSignSVGs() {
                     problemSVGs.push({ file: src, reason: 'external_references' });
                 }
 
-                // Convert SVG to data URL and update img src
-                // This keeps img element (html2canvas handles better) but embeds SVG data
-                const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-                const dataUrl = URL.createObjectURL(svgBlob);
+                // Convert SVG to base64 data URL (not blob URL - those can taint!)
+                // Base64 data URLs are guaranteed same-origin
+                const base64 = btoa(unescape(encodeURIComponent(svgText)));
+                const dataUrl = `data:image/svg+xml;base64,${base64}`;
 
                 // Store original src for restoration
                 const originalSrc = img.src;
@@ -407,14 +407,9 @@ function restoreSignImages(inlinedSigns) {
 
             try {
                 // Restore original src
-                if (img && img.src === dataUrl) {
+                if (img && (img.src === dataUrl || img.src.startsWith('data:'))) {
                     img.src = originalSrc;
                     restored++;
-                }
-
-                // Clean up object URL to free memory
-                if (dataUrl && dataUrl.startsWith('blob:')) {
-                    URL.revokeObjectURL(dataUrl);
                 }
             } catch (err) {
                 console.warn(`Failed to restore sign: ${item.src}`, err);
