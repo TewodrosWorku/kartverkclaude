@@ -73,7 +73,7 @@ export class TextBoxManager {
                 color: #000;
                 border: 2px solid #000;
                 border-radius: 4px;
-                padding: 6px 8px;
+                padding: 3px 8px 6px 8px;
                 font-size: 16px;
                 font-family: Arial, sans-serif;
                 min-width: 150px;
