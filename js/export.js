@@ -71,6 +71,11 @@ export async function exportMapImage(filename = null) {
             console.log(`  - Other images:`, imgsByType.other);
         }
 
+        // Check for SVG overlays (polylines/polygons)
+        const svgOverlays = document.querySelectorAll('.leaflet-overlay-pane svg');
+        const pathCount = document.querySelectorAll('.leaflet-overlay-pane path').length;
+        console.log(`  - SVG overlays (polylines/polygons): ${svgOverlays.length} SVGs, ${pathCount} paths`);
+
         // Capture map
         console.log('Starting map capture...');
         const canvas = await captureMapImage();
