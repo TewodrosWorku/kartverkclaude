@@ -12,8 +12,10 @@
   "markeringsskilt/gult-blinksignal-1098.svg",
   "markeringsskilt/hindermarkering-ensidig-tre.svg",
   "markeringsskilt/hindermarkering-ensidig.svg",
+
   "markeringsskilt/hindermarkering-tosidig.svg",
   "markeringsskilt/hindermarkeringer.svg",
+
   "markeringsskilt/langsgaende-sikring.svg",
   "markeringsskilt/langsgaende-sikring_s.svg",
   "markeringsskilt/lysehodetrafikksignal.svg",
@@ -25,6 +27,9 @@
   "markeringsskilt/sikring-line-thick.svg",
   "markeringsskilt/sikring-line-thin.svg",
   "markeringsskilt/sikring-polygon.svg",
+  "markeringsskilt/sikring-gaende-syklende-medium.svg",
+  "markeringsskilt/sikring-gaende-syklende-thick.svg",
+  "markeringsskilt/generell-polygon.svg",
   "markeringsskilt/tavle.svg",
   "markeringsskilt/tosidig.svg",
   "markeringsskilt/trafikkdirigent.svg",
@@ -56,6 +61,7 @@
   "trafikkskilt/transparent_background/108_0.svg",
   "trafikkskilt/transparent_background/109_0.svg",
   "trafikkskilt/transparent_background/110_0.svg",
+
   "trafikkskilt/transparent_background/112_0.svg",
   "trafikkskilt/transparent_background/114_1.svg",
   "trafikkskilt/transparent_background/114_2.svg",

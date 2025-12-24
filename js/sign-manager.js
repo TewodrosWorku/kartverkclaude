@@ -493,8 +493,8 @@ function placePolygon(signId, latlng, vertices = null) {
     // Determine polygon color based on sign type
     let fillColor, strokeColor, strokeWidth;
     if (signId.includes('arbeidsomrade')) {
-        // Orange for work zone
-        fillColor = 'orange';
+        // Peach/light orange for work zone
+        fillColor = '#fbd7bb';
         strokeColor = 'black';
         strokeWidth = 3;
     } else if (signId.includes('sikring')) {
