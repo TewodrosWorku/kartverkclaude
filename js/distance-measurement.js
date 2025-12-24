@@ -162,7 +162,7 @@ function updateTempLine(currentPos) {
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         ">${formatDistance(segmentDistance)}</div>`,
         iconSize: null,
-        iconAnchor: [0, 0]
+        iconAnchor: [-10, 25] // Offset label to the left and below to avoid cursor overlap
     });
 
     const labelMarker = L.marker([midLat, midLng], {
